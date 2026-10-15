@@ -1,4 +1,4 @@
-# Engineering Task Spec Skill — v11.1
+# Engineering Task Spec Skill — v11.2
 
 ## Purpose
 
@@ -66,7 +66,7 @@ For each phase, specify:
 4. **Carry-forward invariants:** established properties that later phases and final integration must preserve. State them explicitly when meaningful; do not repeat the full AC list.
 5. **Dependency:** what the next phase may rely on after this one passes.
 
-An intermediate gate judges its own exit criteria and inherited constraints, **not work assigned to future phases**. Phase PASS never replaces final whole-task verification. Do not create a fictitious implementation phase merely for the final review.
+An intermediate gate judges its own exit criteria and inherited constraints, **not work assigned to future phases**. Phase PASS never replaces final whole-task verification. Do not create a fictitious implementation phase merely for the final review. Do not implement future-phase functionality or modify shared interfaces merely for speculative preparation. Changes required by the current phase's exit criteria or carry-forward invariants remain permitted.
 
 ### Preflight and verification-plan stability
 
@@ -136,7 +136,7 @@ Preserve just the cross-boundary requirements:
 
 1. **One task, one frozen plan.** Before edits, the Worker registers the entire self-contained prompt (for example, `reviewloop_begin` with full `contractText`). A genuine multi-phase plan must map to the **same ordered `phases[]`**, not just appear in prose or be merged/re-planned. Preserve phase IDs, objectives, exit criteria, and inherited invariants; resolve plan warnings before editing according to the installed policy.
 2. **Evidence stays attached to the right gate.** Global `verificationCommands` must be valid at **every** phase and final gate; `phases[].verificationCommands` are phase-local. Final-only integration checks need an explicit final execution/evidence path. Mandatory non-command proof belongs in `evidenceRequirements` (stable ID, phase/final gate, AC coverage); `phases[].verificationEvidence` prose alone does **not** enforce proof submission. Apply only where that kind of proof is material.
-3. **Continue to whole-task completion.** After `PHASE_PASS`, execute the next phase in the **same** task; only final whole-task `PASS` is completion. On review failure, repair/re-review within the same task; stop for the workflow's genuine human-required/authorization conditions. Do not reset the task to bypass a finding, budget, or frozen requirement.
+3. **Continue to whole-task completion.** After `PHASE_PASS`, execute the next phase in the **same** task; only final whole-task `PASS` is completion. On review failure, repair/re-review within the same task: identify the root cause of each blocking finding and check for analogous defects in the affected scope; apply the smallest complete repair, including necessary shared-code changes, while avoiding unrelated refactoring; run relevant local checks and verify the fixes before requesting independent re-review. Stop for the workflow's genuine human-required/authorization conditions. Do not reset the task to bypass a finding, budget, or frozen requirement.
 
 **Single source of truth:** structured handoff fields faithfully represent the written contract, never form a second plan. If the installed workflow cannot express an essential gate/evidence requirement, identify the mismatch and preserve the requirement through an honestly described verification path; do not invent an API or downgrade the proof. If ReviewLoop is unavailable, execute the same plan using supported tools and report the absence of independent-review assurance.
 
@@ -204,6 +204,8 @@ Verification:
 Execution & Review:
   <a few lines: use installed ReviewLoop Worker Policy when available;
    register the frozen contract/phases/evidence faithfully;
+   before review: verify the current phase's exit criteria and run applicable local checks;
+   on REWORK: resolve root causes and analogous defects using the smallest complete repair; verify locally before re-reviewing within the same task;
    phase PASS -> continue, final PASS -> complete;
    respect human-authorization boundaries>
 ```
