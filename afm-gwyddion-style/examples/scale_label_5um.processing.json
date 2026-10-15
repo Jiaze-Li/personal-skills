@@ -1,0 +1,78 @@
+{
+  "crop_fraction_requested": 0.05,
+  "crop_pixels": {
+    "left": 13,
+    "right": 13,
+    "top": 13,
+    "bottom": 13
+  },
+  "original_shape_yx": [
+    256,
+    256
+  ],
+  "display_shape_yx": [
+    230,
+    230
+  ],
+  "original_scan_um": [
+    20.0,
+    20.0
+  ],
+  "display_scan_um": [
+    17.96875,
+    17.96875
+  ],
+  "fov_convention": "full_scan_size * retained_pixel_count / original_pixel_count",
+  "flatten_order": 1,
+  "flatten_metric_plane_nm": 1.8047012038783898,
+  "flatten_metric_quadratic_nm": 1.9627112823141575,
+  "height_reference": "z - fitted_background + median(fitted_background)",
+  "raw_range_nm": [
+    -7.4273884820286185,
+    88.29192665871233
+  ],
+  "processed_range_nm": [
+    -7.429462766946346,
+    88.38161376435896
+  ],
+  "display_limits_nm": [
+    -0.7950805606453125,
+    3.4293134868343316
+  ],
+  "requested_percentiles": [
+    5.0,
+    99.0
+  ],
+  "normalization": "linear height -> LUT coordinate; not linear perceived brightness",
+  "saturated_low_pct": 5.0,
+  "saturated_high_pct": 1.0,
+  "warnings": [
+    "Automatic crop is a heuristic; brightness alone does not prove a scan artifact."
+  ],
+  "skill_version": "2.1.0",
+  "input_file": "LNO23_CONTACT_0000_AFM.ibw",
+  "input_sha256": "d6c772317cee6d76f0e3f49b9ca1b56fc1d848e92a4fcfe27e531cc35a516c35",
+  "channel": "HeightRetrace",
+  "height_input_unit": "m",
+  "scan_size_source": [
+    "FastScanSize",
+    "SlowScanSize"
+  ],
+  "engine": "NumPy robust fit + Matplotlib; not Gwyddion executable",
+  "render": {
+    "font": "Liberation Serif",
+    "scale_label_pt": 38.0,
+    "colorbar_label_pt": 29.0,
+    "scale_um": 5.0,
+    "dpi": 350,
+    "decimals": 2,
+    "scale_label_weight": "bold",
+    "scale_label_style": "italic",
+    "scale_label_outline_pt": 1.0,
+    "scale_label_outline_alpha": 0.35,
+    "palette": "approved_gwyddion_style_frozen_256",
+    "colorbar_right_shift_inches": 0.2857142857142857,
+    "upper_label": "3.43 nm",
+    "lower_label": "−0.80 nm"
+  }
+}

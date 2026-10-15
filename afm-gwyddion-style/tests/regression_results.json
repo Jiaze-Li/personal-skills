@@ -1,0 +1,32 @@
+{
+  "unit_tests": 6,
+  "passed": 6,
+  "data_regressions": [
+    {
+      "input": "LSMO19_CONTACT_0001.ibw",
+      "channel": "HeightRetrace",
+      "shape": [
+        256,
+        256
+      ],
+      "flatten": 2,
+      "limits": [
+        -0.28490231788294623,
+        0.1885581258183466
+      ]
+    },
+    {
+      "input": "LSMO20_LNO24_CONT0001.ibw",
+      "channel": "HeightRetrace",
+      "shape": [
+        256,
+        256
+      ],
+      "flatten": 1,
+      "limits": [
+        -0.20054284455359545,
+        0.24191844156796136
+      ]
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "skill_version": "2.1.0",
+  "unit_tests_passed": 6,
+  "unit_tests_run": 6,
+  "unchanged_functions_vs_v2": [
+    "text0",
+    "read_ibw",
+    "length_factor",
+    "select_height",
+    "physical_scan_um",
+    "serif_font_name",
+    "palette",
+    "nice_scale",
+    "height_label",
+    "edge_anomaly_crop_fraction",
+    "robust_poly_flatten",
+    "large_scale_metric",
+    "auto_flatten",
+    "process"
+  ],
+  "palette_unchanged_vs_v2": true,
+  "palette_sha256": "e146daecdcef85a77006ffe1f0008b2dbdb74f6db62bd7e41b9baec61aada04f",
+  "current_render_checks": [
+    {
+      "input": "LNO15_AFM.ibw",
+      "crop": {
+        "left": 13,
+        "right": 13,
+        "top": 13,
+        "bottom": 13
+      },
+      "flatten_order": 2,
+      "display_limits_nm": [
+        -0.37076494857873954,
+        0.12115513781794329
+      ],
+      "render": {
+        "font": "Liberation Serif",
+        "scale_label_pt": 38.0,
+        "colorbar_label_pt": 29.0,
+        "scale_um": 1.0,
+        "dpi": 350,
+        "decimals": 2,
+        "scale_label_weight": "bold",
+        "scale_label_style": "italic",
+        "scale_label_outline_pt": 1.0,
+        "scale_label_outline_alpha": 0.35,
+        "palette": "approved_gwyddion_style_frozen_256",
+        "colorbar_right_shift_inches": 0.2857142857142857,
+        "upper_label": "0.12 nm",
+        "lower_label": "−0.37 nm"
+      }
+    },
+    {
+      "input": "LNO23_CONTACT_0000_AFM.ibw",
+      "crop": {
+        "left": 13,
+        "right": 13,
+        "top": 13,
+        "bottom": 13
+      },
+      "flatten_order": 1,
+      "display_limits_nm": [
+        -0.7950805606453125,
+        3.4293134868343316
+      ],
+      "render": {
+        "font": "Liberation Serif",
+        "scale_label_pt": 38.0,
+        "colorbar_label_pt": 29.0,
+        "scale_um": 5.0,
+        "dpi": 350,
+        "decimals": 2,
+        "scale_label_weight": "bold",
+        "scale_label_style": "italic",
+        "scale_label_outline_pt": 1.0,
+        "scale_label_outline_alpha": 0.35,
+        "palette": "approved_gwyddion_style_frozen_256",
+        "colorbar_right_shift_inches": 0.2857142857142857,
+        "upper_label": "3.43 nm",
+        "lower_label": "−0.80 nm"
+      }
+    }
+  ]
+}
