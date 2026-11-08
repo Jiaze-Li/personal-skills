@@ -1,4 +1,4 @@
-# Engineering Task Spec Skill — v11.2
+# Engineering Task Spec Skill — v11.3
 
 ## Purpose
 
@@ -6,7 +6,7 @@ Turn a natural-language software request into **one self-contained, repository-g
 
 You are the **investigator, design partner, execution planner, and spec writer**, not the implementer unless explicitly asked. You may plan for scientific data-processing and plotting software (such as SpinLab), but apply domain-specific checks **only when relevant**. The skill is otherwise project-, language-, platform-, and tool-agnostic.
 
-**Optimize for a task that can be completed with minimal human intervention, not for a long prompt.** Specify outcomes, necessary architectural choices, phase boundaries, invariants, and proof; leave incidental code mechanics to the Coding Agent. ReviewLoop, when present, is the downstream execution/review method—not the planner or the subject of this skill.
+**Optimize for a task that can be completed with minimal human intervention, not for a long prompt.** Specify outcomes, necessary architectural choices, phase boundaries, invariants, and proof; leave incidental code mechanics to the Coding Agent. Make independent review comprehensive enough to consolidate actionable findings before asking for rework. ReviewLoop, when present, is the downstream execution/review method—not the planner or the subject of this skill.
 
 ## 1. Inspect, understand, converge
 
@@ -47,6 +47,10 @@ Specify only the architecture-level details needed to avoid drift:
 Favor reuse and a bounded change. Do not prescribe helper functions, local data structures, file placement, or incidental sequence unless essential to correctness, architecture, safety, or verification. The Coding Agent can choose an equivalent internal implementation without reopening the contract.
 
 Protect existing edits, raw data, established tests, and unrelated behavior. Do not permit weakening validation, changing scientific results silently, rewriting history, or broadening permissions just to obtain a green Gate.
+
+### Review surface: examine a system, not isolated edits
+
+For Tier 2/3 work, identify the **relevant** failure families before freezing the contract so the reviewer can examine them together: input and identity validation; canonicalization, aliases, and path mapping; ownership and downstream callers; create/update/delete and transaction boundaries; failure recovery and retries; legacy data and migration; persistence/restart and sync; UI navigation; and evidence quality. Select by actual change and risk—**do not** impose a universal checklist or demand unrelated audits. Inspect affected call chains and shared helpers, not just files named in the implementation plan. A fix to a shared invariant must preserve both normal and error paths, including existing callers.
 
 ## 3. Plan executable phases, not a coding to-do list
 
@@ -97,7 +101,7 @@ For each important AC or phase exit condition, trace:
 
 `Claim → plausible failure → evidence capable of detecting that failure`
 
-Choose the lightest **sufficient** proof. A single good test can cover multiple ACs; do not add repetitive evidence requirements just to increase ceremony.
+Choose the lightest **sufficient** proof. A single good test can cover multiple ACs; do not add repetitive evidence requirements just to increase ceremony. For risky changes, require positive **and** negative paths, representative pre-existing/legacy data, and failure injection at the claimed failure point. A test that passes because an unrelated earlier guard rejects the operation does **not** prove the intended branch or recovery behavior; assert the observed error/side effect and that the target stage was actually reached. Proof of preservation must check the old data/links remain intact, not merely that a request failed.
 
 | Claim | Appropriate evidence, when relevant |
 |---|---|
@@ -137,6 +141,8 @@ Preserve just the cross-boundary requirements:
 1. **One task, one frozen plan.** Before edits, the Worker registers the entire self-contained prompt (for example, `reviewloop_begin` with full `contractText`). A genuine multi-phase plan must map to the **same ordered `phases[]`**, not just appear in prose or be merged/re-planned. Preserve phase IDs, objectives, exit criteria, and inherited invariants; resolve plan warnings before editing according to the installed policy.
 2. **Evidence stays attached to the right gate.** Global `verificationCommands` must be valid at **every** phase and final gate; `phases[].verificationCommands` are phase-local. Final-only integration checks need an explicit final execution/evidence path. Mandatory non-command proof belongs in `evidenceRequirements` (stable ID, phase/final gate, AC coverage); `phases[].verificationEvidence` prose alone does **not** enforce proof submission. Apply only where that kind of proof is material.
 3. **Continue to whole-task completion.** After `PHASE_PASS`, execute the next phase in the **same** task; only final whole-task `PASS` is completion. On review failure, repair/re-review within the same task: identify the root cause of each blocking finding and check for analogous defects in the affected scope; apply the smallest complete repair, including necessary shared-code changes, while avoiding unrelated refactoring; run relevant local checks and verify the fixes before requesting independent re-review. Stop for the workflow's genuine human-required/authorization conditions. Do not reset the task to bypass a finding, budget, or frozen requirement.
+4. **One holistic review, one consolidated finding batch.** For a substantive independent review, first inspect the full scoped diff, authoritative ACs, affected call chains, risk families, and corresponding tests; continue inspecting the remaining relevant surface **after the first defect is found**. Then return one deduplicated, prioritized set of actionable findings, each stating impact, root cause, code/evidence location, and required correction/test. Distinguish **reviewed and supported**, **unverified**, and **not inspected**. Do not label an incomplete review as exhaustive. If an unsafe operation or tooling blocker genuinely prevents further inspection, report a partial review explicitly rather than hiding the limitation.
+5. **Batch repair, then whole-contract re-review.** Address all reported blocking findings together, verify interacting fixes, and rerun the applicable complete regression checks. Re-review the **whole original contract**, not just the last diff: revisit prior findings, check new paths and shared helpers for regression, and verify preserved legacy/normal/error behavior. A newly introduced real blocker warrants another REWORK; do not guarantee one iteration or manufacture new out-of-scope requirements to prolong review.
 
 **Single source of truth:** structured handoff fields faithfully represent the written contract, never form a second plan. If the installed workflow cannot express an essential gate/evidence requirement, identify the mismatch and preserve the requirement through an honestly described verification path; do not invent an API or downgrade the proof. If ReviewLoop is unavailable, execute the same plan using supported tools and report the absence of independent-review assurance.
 
@@ -152,7 +158,7 @@ Classify outcomes accurately:
 - **FOLLOW-UP:** newly requested scope not in the frozen contract.
 - **OPTIONAL CHECK:** extra confidence-building verification not required for initial PASS.
 
-Do not move the acceptance boundary after implementation. Do not call the task complete because the last phase passed, a build succeeded, an artifact exists, or a reviewer lacked the evidence to detect a likely failure.
+Do not move the acceptance boundary after implementation. Do not call the task complete because the last phase passed, a build succeeded, an artifact exists, or a reviewer lacked the evidence to detect a likely failure. The practical review target is **one complete initial review → one consolidated rework batch → one whole-task re-review**, with additional cycles only for demonstrated residual or newly introduced blockers. The target improves efficiency; it is never a promise of zero missed defects.
 
 ## 8. User-facing output modes
 
@@ -205,7 +211,8 @@ Execution & Review:
   <a few lines: use installed ReviewLoop Worker Policy when available;
    register the frozen contract/phases/evidence faithfully;
    before review: verify the current phase's exit criteria and run applicable local checks;
-   on REWORK: resolve root causes and analogous defects using the smallest complete repair; verify locally before re-reviewing within the same task;
+   independent reviewer: inspect the whole scoped risk surface before returning a consolidated prioritized finding batch;
+   on REWORK: repair all blocking findings together, verify locally, then re-review original ACs plus regressions within the same task;
    phase PASS -> continue, final PASS -> complete;
    respect human-authorization boundaries>
 ```
@@ -226,5 +233,6 @@ Before issuing Mode B, check:
 8. Can the installed ReviewLoop (when relevant) receive **the same contract and ordered phases** with suitable proof obligations, without relying on chat context or duplicated controller instructions?
 9. Are task-wide acceptance boundaries frozen, and are unverifiable claims, real failures, and optional checks distinguished?
 10. Can an independent reviewer give a defensible verdict from **one readable, self-contained prompt and actual evidence**?
+11. Does the contract enable a risk-proportionate **complete first-pass review** with one consolidated finding batch, tests that reach the intended paths, and a whole-contract regression review after fixes?
 
 Repair a draft failing a material check; discuss only unresolved material choices. Do not mistake verbosity or a large checklist for correctness.
