@@ -1,4 +1,4 @@
-# Engineering Task Spec Skill — v11.4
+# Engineering Task Spec Skill — v11.5
 
 ## Purpose
 
@@ -15,8 +15,9 @@ Follow a risk-proportionate sequence:
 1. **Inspect:** When available, read the relevant current code, interfaces, state ownership, tests, configuration, and actual user workflow. Check the branch/working tree where possible. Inspect enough to establish the requested change and evidence paths; do not tour the whole repository.
 2. **Separate outcome from suggestion:** The user's desired behavior and explicit constraints are binding. A proposed implementation is advisory unless expressly mandatory. Prefer a simpler existing extension point over a rewrite when it achieves the same outcome.
 3. **Resolve material decisions:** Discuss choices that would meaningfully change the task contract. Infer routine implementation details rather than asking unnecessary questions.
-4. **Select approach and phases:** Describe the narrowest reasonable architecture, determine whether staged execution adds value, and map acceptance criteria to sufficient evidence.
-5. **Review before freeze when required:** Apply the risk-based Architecture Gate A below before emitting an executable Coding Agent prompt. For tasks exempt from Gate A, freeze and emit directly. Do not start implementation merely because a draft spec is complete.
+4. **Check foundation dependencies before task order:** Identify any shared identity, authority, relationships, persistence, lifecycle, security, or domain-semantics invariants the requested feature assumes. Apply the Foundation Dependency Gate below: establish the smallest necessary cross-consumer contract *before* choosing feature implementation order.
+5. **Select approach and phases:** Describe the narrowest reasonable architecture, determine whether staged execution adds value, and map acceptance criteria to sufficient evidence.
+6. **Review before freeze when required:** Apply the risk-based Architecture Gate A below before emitting an executable Coding Agent prompt. For tasks exempt from Gate A, freeze and emit directly. Do not start implementation merely because a draft spec is complete.
 
 Never invent paths, APIs, scientific algorithms, reference values, tooling capabilities, test commands, or verification results. Prefer current source and demonstrated behavior over outdated documentation; distinguish verified facts from assumptions.
 
@@ -36,6 +37,20 @@ For scientific work, physical units, calibration, masking, preprocessing order, 
 
 Before finalizing, each material decision must be **user-decided**, **determined by the inspected repository/authoritative constraints**, or genuinely **routine** (alternatives do not change the meaningful contract). If unresolved, briefly present the consequential alternatives, recommend a direction, and ask only what is necessary. Do not ask about tests, error handling, style, helper names, or preserving unrelated behavior as routine approval questions. Stop discussing once the contract has converged.
 
+### Foundation Dependency Gate — architecture before dependent features
+
+**When:** Before sequencing a multi-task roadmap or authorizing a Tier 2/3 feature that creates, mutates, deletes, imports, exports, or references shared domain objects, check whether the required foundation **actually exists and is used by its relevant consumers**, not merely that a field, UUID, helper, document, or test exists. Also apply the check to an apparently local UI request if it hides an unimplemented shared identity/storage/ownership assumption. For Tier 1 tasks with stable underlying contracts, the check can be a brief statement; no standalone audit.
+
+**Foundation checklist (risk-selected, never universal):** Who owns the authoritative object and assigns its immutable identity? Which fields are human labels, aliases, semantic attributes, content fingerprints, or storage locators rather than authority? How do producers and downstream consumers resolve and preserve relationships through rename, import, edit, delete, retry, restart, and migration? What is the commit boundary and failure/rollback policy? For scientific or financial records, what are the semantic scope, provenance, version/current-selection and human-vs-automated precedence rules? Inspect actual data flows and existing tests only as far as needed for the task's material risks.
+
+**Deliverable:** Record each material prerequisite as **VERIFIED READY**, **GAP — FOUNDATION FIRST**, **SAFE TO DEFER** (with reason and guarded boundary), or **UNKNOWN / AUDIT REQUIRED**. Show a short dependency order: which *minimal, reusable and independently verifiable* core invariant/interface must be designed and implemented before the dependent user feature, and which later capabilities may be implemented incrementally against the frozen contract. A new field or unused identity token is not proof of cross-module integration. A passing feature demo does not prove the claimed data lifecycle or preservation guarantees.
+
+**Enforcement:** If a material foundation is missing, **do not issue an implementation prompt that patches around it with a parallel authority, temporary foreign key, private storage or implicit migration**. First complete bounded read-only discovery if needed, produce and independently review the common architecture contract under Gate A when triggered, then sequence minimal foundation work before dependent functionality. Explicitly preserve and test downstream/legacy consumers. Do not retroactively alter already frozen tasks: report discovered defects/risks against their agreed contracts and propose a separate authorized remediation or a necessary design stop. Escalate to a human only for material choices.
+
+**Avoid premature platforms:** 'Architecture first' means **design cross-cutting contracts early and implement only the foundations required by an actual dependency**. It does not mean creating every hypothetical database table, ID type, service, generic framework or migration before any feature. Distinguish durable domain entities from representations, files, caches, display artifacts and revisions; assign independent identities only where independently managed identity is required.
+
+**Roadmap review:** When reviewing a multi-task plan, inspect dependencies **across tasks**, not merely each task's isolated ACs. Flag features that are scheduled before their common identity/provenance/ownership/lifecycle foundation, multiple tasks that would invent incompatible representations, and migrations deferred beyond their first dependent consumers. Recommend a dependency-corrected ordering and explicit architecture/design gates, while preserving intended milestone outcomes and separating design decisions from full implementation. Never silently rewrite the user's roadmap or broaden the current task contract.
+
 ### Architecture Gate A — independent design review before implementation
 
 **Trigger:** Apply Gate A to **Tier 3** tasks and to **Tier 2** tasks whose correctness depends on changing shared state ownership, persistence/schema, transactional recovery, or another consequential cross-module invariant. **Tier 1** tasks skip it; ordinary Tier 2 extensions without those risks may skip it. Justify the classification briefly, not with a ceremonial risk report.
@@ -53,6 +68,7 @@ Before finalizing, each material decision must be **user-decided**, **determined
 Specify only the architecture-level details needed to avoid drift:
 - verified current behavior and relevant interfaces/ownership;
 - existing mechanisms to extend, important data/control flow, and externally significant algorithms;
+- foundation dependencies with their VERIFIED READY / FOUNDATION FIRST / SAFE TO DEFER / AUDIT REQUIRED disposition, when consequential;
 - constraints on compatibility, persistence, failure behavior, scientific semantics, and unrelated functionality;
 - scope boundaries and explicit non-goals where they prevent unnecessary redesign.
 
@@ -246,6 +262,7 @@ Before issuing Mode B, check:
 1. Is the user's outcome clear, and are all **material** product/scientific/architecture decisions resolved?
 2. Is the approach grounded in inspected facts or a bounded preflight, without invented details or premature file-level instructions?
 3. Are phases justified, dependency-ordered, and independently testable—or intentionally absent for a small task?
+3a. Did the Foundation Dependency Gate verify that the feature's shared identity/authority/relationship and lifecycle prerequisites are real across relevant consumers, or sequence minimal foundation work first with independent review where required?
 4. Does every required phase have exit criteria, adequate evidence, and carry-forward invariants that later work can rely on?
 5. Can a Worker start with a **feasible, stable verification plan**, avoiding frozen-manifest drift and premature final-only Gate failures?
 6. Does each important AC have proof capable of detecting its plausible failure, especially for scientific values, real UI wiring, exports, and full-task integration?
