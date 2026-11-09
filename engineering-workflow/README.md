@@ -1,4 +1,4 @@
-# AI Engineering Workflow v1.0 — 使用说明
+# AI Engineering Workflow v1.0.1 — 使用说明
 
 ## 结论
 采用“一个主控 GPT 对话 + 一个 Coding Agent Worker + 必要时独立 Reviewer”。四份 Skill 分隔职责，不要求四个常驻 GPT 对话，也不新建一套执行系统。
@@ -18,6 +18,20 @@
 7. 尽量减少我手动协调角色的成本。只让我决定重大产品、科研、架构和权限事项；需要交给 Worker 或另一个对话时给完整交接材料。
 8. 默认只读。未经明确授权，不修改仓库、提交、推送、合并 PR、改权限或破坏正式数据。
 ```
+
+## v1.0.1 跨角色接口规则
+
+- **Gate 判定唯一归 Lead：** Tier 1 跳过独立设计审查；Tier 3 必须独立审设计；Tier 2 若修改共享权威、Schema/持久化、事务恢复或重要跨模块不变量也必须审。Architect 设计、独立 Reviewer 判定，Task Spec 核实当前版本的 DESIGN PASS；已获批旧设计仅在准确覆盖当前变化时可复用。未审标 PENDING，明确豁免另记风险，不能自签 PASS。
+- **输出格式由交付物决定：** 讨论/规划听 Lead，Architecture Contract 听 Architect，正式 Coding Agent Prompt 听 Task Spec 的单代码块，独立审查听 Reviewer。权限、合同和 Gate 约束始终有效。
+- **Reviewer 不能绕过 Worker Policy：** 在原冻结任务内做 REWORK；`HUMAN_REQUIRED` 停止并报告；等待、预算及 PR bot 强制关卡不能靠新任务、新审查状态或改 AC 绕过。修复建议不赋予额外执行权限。
+
+### 三个最小场景检查（待实际试跑，不能自称已验证）
+
+| 场景 | 正确路径 |
+|---|---|
+| 局部 UI 按钮修改，既有合同稳定 | Lead → Task Spec → Worker；无额外设计 Gate；最终 prompt 单代码块 |
+| SpinLab Sample 永久身份和跨模块关联调整 | Lead 判 Tier 3 → Architect Contract → 独立 DESIGN PASS → Task Spec → Worker；基础实施与消费者证据先于依赖功能 |
+| PR REWORK 后 ReviewLoop 为 HUMAN_REQUIRED | Reviewer 报告阻塞，不能交给 Worker 绕过当前状态继续修复 |
 
 ## 文件与负责人
 | 规范 | 使用位置 | 唯一主要职责 |
