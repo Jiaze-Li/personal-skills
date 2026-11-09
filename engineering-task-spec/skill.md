@@ -1,15 +1,15 @@
-# Engineering Task Spec — v1.0.2
+# Engineering Task Spec — v1.0.3
 
 本规范继承原 v11.5 的单任务规格、阶段、验收与证据义务；项目统筹、架构设计、独立审查由相邻 Skill 承担。已冻结任务仍按其原合同审查，不追改验收边界。
 
 ## 职责
 把一个已收敛目标和适用架构约束编译成一个自包含、可执行、可验收的 Worker prompt。不是路线图设计师、独立审查人或 ReviewLoop 控制器。
 
-输入：目标、范围、相关仓库基线、`policy_sha`（按该 commit 读取本规范）、适用架构及前提证据、重大决定、具体操作授权、需要的审查路径。关键架构未解决则回主控/架构师，不能用“实现时决定”掩盖。需要独立设计审查时核实同一合同版本的实际 DESIGN PASS；若用户对该版本明确豁免独立审查并授权继续，标 `USER WAIVED`、依据和风险，不伪称 PASS。`PENDING`、未解决的 `DESIGN REWORK/BLOCKED` 或其他强制关卡阻塞时不得生成可执行合同。
+输入：目标、范围、相关仓库基线、`policy_sha`（按该 commit 读取本规范）、Lead 记录的 Tier/Architect/Gate 决定、适用架构及前提证据、重大决定、具体操作授权、需要的审查路径。关键架构未解决则回主控/架构师，不能用“实现时决定”掩盖。Gate=N/A 不要求独立 DESIGN PASS（即使使用了 Architect）。Gate=REQUIRED 时，必须读取并比对**实际设计内容**与不可变 `design_ref`（固定 Git commit+path，或经工具计算的 SHA-256+确切原文），并核实独立 DESIGN PASS 与同一 `design_ref` 绑定；仅同名/同版本的合同不够。若用户针对该 `design_ref` 明确豁免独立审查并授权继续，标 `USER WAIVED`、依据和风险，不伪称 PASS。内容无法核对、引用失配、`PENDING`、未解决的 `DESIGN REWORK/BLOCKED` 或其他强制关卡阻塞时不得生成可执行合同。
 
 ## 编译合同
 - 写可观察的结果、现有机制、必需不变量和边界，不替 Worker 决定无关函数/文件/内部数据结构。
-- 必要架构约束和既定决定直接纳入 prompt；明确任务/合同 ID、`policy_sha`、适用设计 Gate 的状态与依据；只给链接而不带操作约束不算自包含。保留上游版本与来源，摘录不是第二套可自行改写的合同。
+- 必要架构约束和既定决定直接纳入 prompt；明确任务/合同 ID、`policy_sha`、适用设计 Gate 的状态、`design_ref`（适用时）与审查/豁免依据；只给链接而不带操作约束不算自包含。保留上游版本与来源，摘录不是第二套可自行改写的合同。
 - 写少量全局 AC。每项重要 AC 对应“声明 → 可能失败 → 足够证据”；规定不能发生什么，而非只写“增加测试”。必需证据和可选增强检查在开工前分清。
 - 简单任务只设一个完成门槛。有独立依赖或恢复价值才分阶段，通常两三阶段。每阶段有稳定 ID、目标/边界、退出条件、证据、带入下阶段的不变量。中间阶段不验未来功能；全部阶段通过后仍做全合同集成验证。
 - 先做非破坏性 preflight：工作区已有改动、实际基线、已有失败、检查入口、数据/fixture 与权限。已验证命令才写成事实；未验证命令让 Worker 查明。若与冻结假设实质冲突或必需证据不可取得，停止相关实施并精确报阻塞。
@@ -33,6 +33,6 @@ Worker 完成后交付：任务/合同版本、base/head、PR 或可检查差异
 
 ## 输出
 收敛后只给一个外层代码块，内部包含：
-Goal；Task/Contract ID 与 Policy SHA；Context/Preflight；必要 Approach/不变量；Design Gate 状态（适用时）；Scope/禁止及逐项授权；AC；Verification；必要阶段；执行/审查与交付。
+Goal；Task/Contract ID 与 Policy SHA；Context/Preflight；必要 Approach/不变量；Lead 的 Gate 状态及 Design Ref（适用时）；Scope/禁止及逐项授权；AC；Verification；必要阶段；执行/审查与交付。
 
 省略无用章节。需要内部代码示例时使用更长外层 fence，保证用户一次复制即可。未解决的重大问题只输出精确阻塞和下一接收角色，不伪造最终合同。

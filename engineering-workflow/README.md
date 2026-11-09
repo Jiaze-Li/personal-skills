@@ -1,4 +1,4 @@
-# AI Engineering Workflow v1.0.2 — 使用说明
+# AI Engineering Workflow v1.0.3 — 使用说明
 
 ## 结论
 采用“一个主控 GPT 对话 + 一个 Coding Agent Worker + 必要时独立 Reviewer”。四份 Skill 分隔职责，不要求四个常驻 GPT 对话，也不新建一套执行系统。
@@ -21,19 +21,19 @@
 
 ## v1.0.2 跨角色接口规则
 
-- **Gate 判定唯一归 Lead：** Tier 1 跳过独立设计审查；Tier 3 必须独立审设计；Tier 2 若修改共享权威、Schema/持久化、事务恢复或重要跨模块不变量也必须审。Architect 设计、独立 Reviewer 判定，Task Spec 核实当前版本的 DESIGN PASS；已获批旧设计仅在准确覆盖当前变化时可复用。未审标 PENDING，明确豁免另记风险，不能自签 PASS。
+- **Gate 判定唯一归 Lead：** Tier 1 跳过独立设计审查；Tier 3 需要独立设计审查；Tier 2 只有修改共享权威、Schema/持久化、事务恢复或关键跨模块不变量才强制 Gate。**调用 Architect 不等于强制 Gate**；普通 Tier 2 兼容扩展可有设计依据且 Gate=N/A。Gate 必需时，只有对确切 `design_ref` 的 DESIGN PASS 或有效 USER WAIVED（且没有其他实质阻塞）才能编译实施任务。
 - **输出格式由交付物决定：** 讨论/规划听 Lead，Architecture Contract 听 Architect，正式 Coding Agent Prompt 听 Task Spec 的单代码块，独立审查听 Reviewer。权限、合同和 Gate 约束始终有效。
-- **统一方法基线：** 新任务读 `main` 并固定完整 `policy_sha`；后续 Architect/Task Spec/Reviewer 读取相同 SHA。旧任务缺少记录则说明未知，不回填猜测的版本。当前工具/安全强制规则仍生效。
-- **设计豁免：** `DESIGN PASS`、`USER WAIVED`、`PENDING` 分开；豁免只有经用户对当前合同明确知情并授权继续才生效，不替代设计合理性，也不能绕过真实阻塞。
+- **统一方法基线：** 新任务读 `main` 并固定完整 `policy_sha`；后续 Architect/Task Spec/Reviewer 读取相同 SHA。`policy_sha` 固定角色规范；`design_ref` 固定 Reviewer 批准的确切架构合同（Git commit+path 或经工具计算 SHA-256+原文），不得仅凭合同名称/版本推断批准范围。旧任务缺少记录则说明未知，不回填猜测的版本。当前工具/安全强制规则仍生效。
+- **设计豁免：** `DESIGN PASS`、`USER WAIVED`、`PENDING`、`N/A` 分开；豁免只有经用户对相同不可变 `design_ref` 明确知情并授权继续才生效，不替代设计合理性，也不能绕过真实阻塞。
 - **逐项操作授权：** 不因要交付 PR 就默认为已授权所有 commit/push/merge；Lead 收敛并由 Task Spec 写进 Worker 合同，未授权动作不得执行。
 - **Reviewer 不能绕过 Worker Policy：** 在确认原任务/loop 状态、PR HEAD 和相应 bot 证据后才下发可执行修复 Prompt；`HUMAN_REQUIRED` 停止并报告；等待、预算及 PR bot 强制关卡不能靠新任务、新审查状态或改 AC 绕过。缺少状态仍可只读审查但不能下发可立即执行的修复。
 
-### 三个最小场景检查（输入和证据表见 [EVALS.md](EVALS.md)，待实际试跑）
+### 风险分流与执行评测（输入及记录表见 [EVALS.md](EVALS.md)，待实际试跑）
 
 | 场景 | 正确路径 |
 |---|---|
 | 局部 UI 按钮修改，既有合同稳定 | Lead → Task Spec → Worker；无额外设计 Gate；最终 prompt 单代码块 |
-| SpinLab Sample 永久身份和跨模块关联调整 | Lead 判 Tier 3 → Architect Contract → 独立 DESIGN PASS → Task Spec → Worker；基础实施与消费者证据先于依赖功能 |
+| SpinLab Sample 永久身份和跨模块关联调整 | Lead 判 Tier 3 → Architect Contract → DESIGN PASS 或有效 USER WAIVED → Task Spec → Worker；基础实施与消费者证据先于依赖功能 |
 | PR REWORK 后 ReviewLoop 为 HUMAN_REQUIRED | Reviewer 报告阻塞，不能交给 Worker 绕过当前状态继续修复 |
 
 ## 文件与负责人
@@ -63,7 +63,7 @@ A 按阶段读取对应规范，不要求所有规范一直塞进一个系统提
 只有合同明确要求真实使用/科研验收时，你才做对应操作。A 收到有效审查及必需外部验收结果后更新任务状态；merge 仍按你授权，不因 PASS 自动进行。
 
 ### 高风险或共享架构任务
-A 先读取 architect，形成短架构合同及完整设计审查包。把审查包给 B。B 通过后，把结论交回 A；A 编译实施 prompt，再给 Worker。基础不一定单独开任务：小型变更可放在同一任务的先行阶段，但依赖功能必须等基础门槛通过。跨任务复用或独立迁移/发布时再拆任务。
+A 根据 Tier 判定是否读取 Architect，并**单独**判定是否需要独立设计 Gate。Gate=N/A 时，形成必要的架构说明后可以直接交 Task Spec；Gate=REQUIRED 时形成含不可变 `design_ref` 的短架构合同及审查包，交 B 进行独立审核。**只有同一 `design_ref` 获 DESIGN PASS，或用户针对该内容明确知情豁免并授权继续（USER WAIVED），且没有其他实质阻塞，才可编译 Worker Prompt。** B 的 PASS 不等于实际基础完成。基础不一定单独开任务：小型变更可放在同一任务的先行阶段，但依赖功能必须等基础门槛通过。跨任务复用或独立迁移/发布时再拆任务。
 
 设计已获批但基础尚未实现时，不得将基础标为可用。已存在并保持不变的获批设计不为每个后续功能重新过设计审查。
 
@@ -90,7 +90,7 @@ A 先读取 architect，形成短架构合同及完整设计审查包。把审�
 当前下一步与必要权限：
 
 ### 每次交接包（由 AI 整理，不由用户整理）
-任务/合同版本与固定的 `policy_sha`；仓库、分支、base/head（适用时）；精确合同/设计内容或可访问版本；设计 Gate 状态/豁免依据及操作授权；PR/差异与 AC 证据；审查范围及结论；返工场景还须附当前 loop/PR bot 状态与所审 HEAD 的可信证据；未决项；接收者现在要做的事。
+任务/合同版本与固定的 `policy_sha`；仓库、分支、base/head（适用时）；精确合同/设计内容或可访问版本；Gate 状态、适用的不可变 `design_ref`、审查/豁免依据及操作授权；PR/差异与 AC 证据；审查范围及结论；返工场景还须附当前 loop/PR bot 状态与所审 HEAD 的可信证据；未决项；接收者现在要做的事。
 
 发给 Worker 的 prompt 自包含必要要求；发给 Reviewer 的材料包含足够需求与上下文，但不将作者的自信或 PASS 主张当证据。无法访问引用时附内容，不能靠回忆补全。
 
@@ -127,8 +127,13 @@ A 再给最小基础实施任务（或先行阶段）：证实创建与相关读
 在 Worker 实际基线包含已验证基础后，才让手机创建入口消费它。Notebook 等后续能力复用同一合同，不各自发明身份。
 这不要求先建完所有未来数据库表、所有消费者功能或整个统一平台。
 
+## 动态评测怎么做
+无需增加常驻 Agent 或后台控制器。每次修改四份工程 Skill 或 Project Settings 后，使用固定 `policy_sha` 在**新的主控对话 A 和独立审查对话 B**运行 [EVALS.md](EVALS.md) 的案例：既测试正确阻塞，也测试符合条件时能顺利交接。每个案例保存实际原始输出、模型/环境、所用 SHA、期望与实测分流、阻塞/权限处理、PASS/FAIL 及证据链接；只读模拟测试不允许声称真的运行过 Worker 或 PR bot。
+
+**发布门槛：** 正反向案例没有真实运行与证据，状态为 NOT RUN；出现 P1 的 FAIL 则修复并重跑对应案例和相关回归；其余问题记录后可作阶段性试用判断。模拟评测完成后，用一次真实 Tier 1 任务、一次共享基础任务和一次 PR REWORK 闭环记录实战证据。规范改动时重跑固定案例；真实任务结束时抽查是否遵守 Gate、授权、引用和证据义务，不要求每天人工检查。
+
 ## 版本一致性、权限与评测
-新任务在首次正式规划时固定 personal-skills 的完整 Git commit SHA，后续所有角色以其为唯一方法规范基线。现有 ReviewLoop/PR bot 的强制政策、状态及仓库安全规则不被旧方法快照覆盖；发生实质冲突需报告。Task Spec 必须分别记录是否允许修改、commit、push、创建 PR、merge 等操作，未获授权的不执行。设计审查可由用户明确知情豁免并授权继续，但不能跳过重大未决设计或强制关卡。请按 [固定评测案例](EVALS.md) 记录实际结果，不要把文字场景直接当作执行 PASS。
+新任务在首次正式规划时固定 personal-skills 的完整 Git commit SHA，后续所有角色以其为唯一方法规范基线。现有 ReviewLoop/PR bot 的强制政策、状态及仓库安全规则不被旧方法快照覆盖；发生实质冲突需报告。Task Spec 必须分别记录是否允许修改、commit、push、创建 PR、merge 等操作，未获授权的不执行。设计审查可由用户明确知情豁免并授权继续，但不能跳过重大未决设计或强制关卡。请按 [固定评测案例](EVALS.md) 记录正反向的实际结果，不要把文字场景直接当作执行 PASS。
 
 ## 从 v11.5 迁移
 v11.5 依据：`Jiaze-Li/personal-skills` commit `18448e3a43502e25149271784551beae91d1630a`，路径 `engineering-task-spec/skill.md`。

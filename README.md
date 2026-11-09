@@ -2,7 +2,7 @@
 
 个人 AI Skills 仓库。每个 Skill 一个目录，入口为 `skill.md` / `SKILL.md`；每个 Skill 只保留一份当前有效版本，历史版本通过 Git 恢复。
 
-## AI Engineering Workflow v1.0.2
+## AI Engineering Workflow v1.0.3
 
 日常操作：**一个主控 GPT 对话 → 一个 Coding Agent Worker → 按风险调用独立审查**。角色按需加载，并非四个常驻对话。开发执行仍沿用已有 ReviewLoop / PR bot，不重复设立控制器。
 
