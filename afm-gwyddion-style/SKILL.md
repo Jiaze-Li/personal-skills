@@ -10,10 +10,10 @@ description: 从用户上传的 AFM .ibw 原始高度数据生成固定 Gwyddion
 用户上传本 ZIP 和 `.ibw` 时，在当前对话的 Python/代码执行环境解压本包，读取此文件后运行附带脚本，不重新设计图像、不重新搜索文献、不要求用户操作 Gwyddion。
 
 ```bash
-python afm_gwyddion_style_v2_1/scripts/plot_afm.py INPUT.ibw -o OUTPUT_AFM.png
+python afm-gwyddion-style/scripts/plot_afm.py INPUT.ibw -o OUTPUT_AFM.png
 ```
 
-路径用当前运行环境中实际存在的路径替换；不要使用之前对话里的绝对路径。只要运行环境已有 NumPy、Matplotlib 和 Pillow，就不需要联网、Gwyddion、Igor Pro 或额外的 IBW 解析库。
+上述命令以 `personal-skills` 仓库根目录为工作目录；如果从 ZIP 解压目录或 Skill 子目录运行，按实际存在的目录调整相对路径。不要使用之前对话里的绝对路径。只要运行环境已有 NumPy、Matplotlib 和 Pillow，就不需要联网、Gwyddion、Igor Pro 或额外的 IBW 解析库。
 
 完成后检查 PNG，直接显示预览并给出可下载链接。默认回复简短，不重复研究背景。不得声称文件已生成而未实际运行并确认文件存在。若没有文件处理/代码执行环境，明确说明不能在那个环境执行本包；不要用生成式图片代替数据图。
 

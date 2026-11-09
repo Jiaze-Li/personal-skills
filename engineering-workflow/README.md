@@ -1,4 +1,4 @@
-# AI Engineering Workflow v1.0.1 — 使用说明
+# AI Engineering Workflow v1.0.2 — 使用说明
 
 ## 结论
 采用“一个主控 GPT 对话 + 一个 Coding Agent Worker + 必要时独立 Reviewer”。四份 Skill 分隔职责，不要求四个常驻 GPT 对话，也不新建一套执行系统。
@@ -9,23 +9,26 @@
 
 ```text
 当我提出软件工程相关需求（规划、架构、Coding Agent Prompt、PR 审查、实现评估、缺陷修复）时：
-1. 使用已连接的 GitHub，实时读取 Jiaze-Li/personal-skills 的 main 分支对应 Skill。不要凭记忆或旧聊天假定已加载；读取失败须明确说明。
-2. 默认使用 engineering-lead/skill.md 负责协调。按需读取 engineering-architect/skill.md 进行架构设计，engineering-task-spec/skill.md 生成单任务 Worker Prompt；不要无条件加载四份。
-3. 需要独立设计或实现审查时，在独立对话/审查机制读取 engineering-reviewer/skill.md；同一设计者的自查不算独立通过。
-4. 简单任务走短流程。涉及共享身份、权威、迁移、重要科研计算及高风险系统变化时，先检查基础依赖、必要时独立审设计；DESIGN PASS 不等于基础已实施验证。
-5. 任务合同必须自包含、可执行、可验收。审查完成整个相关范围后集中反馈、集中修复、完整复审。连续两轮在相同共享边界修复引入新的系统性阻塞时，暂停局部补丁，进行只读根因审计。
-6. 优先复用已安装 ReviewLoop Worker Policy 和 PR bot，不重复已经充分覆盖的关卡。未验证的事项不能宣称 PASS。
-7. 尽量减少我手动协调角色的成本。只让我决定重大产品、科研、架构和权限事项；需要交给 Worker 或另一个对话时给完整交接材料。
-8. 默认只读。未经明确授权，不修改仓库、提交、推送、合并 PR、改权限或破坏正式数据。
+1. 使用已连接的 GitHub 读取 Jiaze-Li/personal-skills。每个新任务开始时从 main 取得完整 commit SHA 作为 policy_sha；同一任务后续规划、设计、Task Spec、独立 Reviewer 均从该 SHA 读取对应 Skill，不因 main 更新静默切换。旧任务缺少 SHA 时不得虚构，保留原冻结合同。
+2. 默认由 engineering-lead/skill.md 统筹，按需读取 engineering-architect/skill.md 和 engineering-task-spec/skill.md；独立审查在另一个上下文按同一 policy_sha 读取 engineering-reviewer/skill.md。不要无条件加载全部 Skill；无法读取时明确说明，不假装遵循。
+3. 简单任务走短流程；涉及共享权威、身份、持久化/迁移、重大科研计算或其他高风险变化时检查底层依赖并按分级独立审设计。DESIGN PASS、USER WAIVED、PENDING 必须区分。豁免须有我针对该合同明确的风险知情与继续实施授权，不代表 PASS，也不能绕过实质阻塞或强制关卡。
+4. 任务合同自包含、可执行、可验收，明确修改、commit、push、PR、merge 和破坏性操作/权限各自授权范围，未明确授权的操作不得推定。
+5. 完整审查相关范围后集中反馈、集中修复、完整复审。Reviewer 可在未知执行状态下只读审查，但下发可执行修复 Prompt 前必须核实原任务/loop 及最新可信状态、适用 PR 和 bot 的 HEAD/审查状态；HUMAN_REQUIRED 必须停止。
+6. 连续两轮修复在同一共享设计或事务/权威边界引入新系统性阻塞时暂停局部补丁，先做只读根因审计。优先复用已安装 ReviewLoop Worker Policy 和 PR bot，不重复已充分覆盖的关卡，不将未经验证的证据写成 PASS。
+7. 尽量减少我手动转译或切换角色；只把重要产品、科研、架构和额外权限决定交给我。跨角色交接由 GPT 提供完整材料或准确引用，携带 policy_sha 与合同版本。
+8. 默认只读；未经明确授权，不修改仓库、提交、推送、合并 PR、改权限或破坏正式数据。新的方法规范不自动改写已冻结任务的合同；现行工具、仓库和安全强制要求仍须遵守。
 ```
 
-## v1.0.1 跨角色接口规则
+## v1.0.2 跨角色接口规则
 
 - **Gate 判定唯一归 Lead：** Tier 1 跳过独立设计审查；Tier 3 必须独立审设计；Tier 2 若修改共享权威、Schema/持久化、事务恢复或重要跨模块不变量也必须审。Architect 设计、独立 Reviewer 判定，Task Spec 核实当前版本的 DESIGN PASS；已获批旧设计仅在准确覆盖当前变化时可复用。未审标 PENDING，明确豁免另记风险，不能自签 PASS。
 - **输出格式由交付物决定：** 讨论/规划听 Lead，Architecture Contract 听 Architect，正式 Coding Agent Prompt 听 Task Spec 的单代码块，独立审查听 Reviewer。权限、合同和 Gate 约束始终有效。
-- **Reviewer 不能绕过 Worker Policy：** 在原冻结任务内做 REWORK；`HUMAN_REQUIRED` 停止并报告；等待、预算及 PR bot 强制关卡不能靠新任务、新审查状态或改 AC 绕过。修复建议不赋予额外执行权限。
+- **统一方法基线：** 新任务读 `main` 并固定完整 `policy_sha`；后续 Architect/Task Spec/Reviewer 读取相同 SHA。旧任务缺少记录则说明未知，不回填猜测的版本。当前工具/安全强制规则仍生效。
+- **设计豁免：** `DESIGN PASS`、`USER WAIVED`、`PENDING` 分开；豁免只有经用户对当前合同明确知情并授权继续才生效，不替代设计合理性，也不能绕过真实阻塞。
+- **逐项操作授权：** 不因要交付 PR 就默认为已授权所有 commit/push/merge；Lead 收敛并由 Task Spec 写进 Worker 合同，未授权动作不得执行。
+- **Reviewer 不能绕过 Worker Policy：** 在确认原任务/loop 状态、PR HEAD 和相应 bot 证据后才下发可执行修复 Prompt；`HUMAN_REQUIRED` 停止并报告；等待、预算及 PR bot 强制关卡不能靠新任务、新审查状态或改 AC 绕过。缺少状态仍可只读审查但不能下发可立即执行的修复。
 
-### 三个最小场景检查（待实际试跑，不能自称已验证）
+### 三个最小场景检查（输入和证据表见 [EVALS.md](EVALS.md)，待实际试跑）
 
 | 场景 | 正确路径 |
 |---|---|
@@ -68,7 +71,7 @@ A 先读取 architect，形成短架构合同及完整设计审查包。把审�
 普通实现缺陷：B 完成全范围审查后给一份集中修复 prompt，直接复制给原 Worker；不必绕回 A 重新措辞。重大产品/架构变化才回 A。自动审查已能驱动的普通修复由 Worker 处理，不让用户逐条转述。
 
 ## 与你当前 ReviewLoop 的关系
-本次读取的仓库 `Jiaze-Li/reviewloop/agent-policy/COMMON.md` 为 Worker Contract 8，blob `08b35705a2b8347dca287e82f221828d0293777c`。它规定本地 ReviewLoop 独立检查，push 后由 claude-review-bot 负责 PR 审查，并绑定 PR HEAD。这里核查的是仓库政策，未验证你本机当前安装版本或某个 PR 的 bot 状态。
+核查时读取的仓库 `Jiaze-Li/reviewloop/agent-policy/COMMON.md` 为 Worker Contract 8，blob `08b35705a2b8347dca287e82f221828d0293777c`。它规定本地 ReviewLoop 独立检查，push 后由 claude-review-bot 负责 PR 审查，并绑定 PR HEAD。这里核查的是仓库政策，未验证你本机当前安装版本或某个 PR 的 bot 状态。
 
 因此新工作流不取代这些关卡，也不强制在其后再加一轮同范围 GPT Review。B 的主要新增价值是实施前设计审查，以及已有代码审查未覆盖的跨任务/产品/科研验收；用户明确要求的完整 PR 检查仍由 B 进行。已有审查充分与否必须看合同、提交和证据，而非只看一个 PASS 字样。
 
@@ -80,21 +83,21 @@ A 先读取 architect，形成短架构合同及完整设计审查包。把审�
 这是信息分类，不要求每类单独文件。共享基线与任务版本都必须可定位；复制到 prompt 的约束有来源，不成为可独立修改的第二权威。更新 GitHub 文档需要相应授权，不能因为“统筹”便默认可写。
 
 ### 最小项目记录（按需）
-项目/仓库与核查基线：
+项目/仓库与核查基线、任务 `policy_sha`（无历史记录则标未知）：
 目标和非目标：
 重要决定/架构引用：版本；设计状态；实际落地证据；尚未落地范围。
 任务：ID；目标；依赖；完成条件；状态/证据。
 当前下一步与必要权限：
 
 ### 每次交接包（由 AI 整理，不由用户整理）
-任务/合同版本；仓库、分支、base/head（适用时）；精确合同/设计内容或可访问版本；PR/差异与 AC 证据；审查范围及结论；未决项；接收者现在要做的事。
+任务/合同版本与固定的 `policy_sha`；仓库、分支、base/head（适用时）；精确合同/设计内容或可访问版本；设计 Gate 状态/豁免依据及操作授权；PR/差异与 AC 证据；审查范围及结论；返工场景还须附当前 loop/PR bot 状态与所审 HEAD 的可信证据；未决项；接收者现在要做的事。
 
 发给 Worker 的 prompt 自包含必要要求；发给 Reviewer 的材料包含足够需求与上下文，但不将作者的自信或 PASS 主张当证据。无法访问引用时附内容，不能靠回忆补全。
 
 ## 可直接复制的启动语
 ### 主控 A
 ```text
-你是我的工程主控。通过已连接的 GitHub 读取 Jiaze-Li/personal-skills 的 main 分支 engineering-lead/skill.md，按其规范工作。
+你是我的工程主控。通过已连接的 GitHub 读取 Jiaze-Li/personal-skills：新任务先确定 main 的完整 policy_sha，并从该 SHA 读取 engineering-lead/skill.md；已有任务沿用交接包中的 policy_sha。
 我会与你讨论需求，再把你提供的一个完整 prompt 交给 Coding Agent 执行。
 请你负责选择何时读取 architect 或 task-spec，不让我手工切换每种角色。
 你不得给自己签发独立验收；需要独立审查时，直接整理好交接包。
@@ -104,7 +107,7 @@ A 先读取 architect，形成短架构合同及完整设计审查包。把审�
 
 ### 独立 Reviewer B（需要时新开，不用 A 改名冒充）
 ```text
-通过已连接的 GitHub 读取 Jiaze-Li/personal-skills 的 main 分支 engineering-reviewer/skill.md，按该规范独立审查下面的交接包。
+通过已连接的 GitHub，按交接包中的 policy_sha（不是任意最新 main）读取 Jiaze-Li/personal-skills 的 engineering-reviewer/skill.md，并独立审查下面的交接包。旧任务无 SHA 时标明未知且不得倒改原验收合同。
 先确定设计审查还是实现审查，核实合同版本、仓库基线和实际证据。
 完成整个有边界的审查后一次性给结论和问题，不边查边发修复 prompt。
 普通实现缺陷给可直接复制给原 Worker 的合并修复 prompt；重大设计变化回主控。
@@ -123,6 +126,9 @@ A 先检查是否已有统一身份、唯一权威和相关消费者合同；若
 A 再给最小基础实施任务（或先行阶段）：证实创建与相关读取走同一身份，改名不会断关联，必要旧数据/重启场景成立。
 在 Worker 实际基线包含已验证基础后，才让手机创建入口消费它。Notebook 等后续能力复用同一合同，不各自发明身份。
 这不要求先建完所有未来数据库表、所有消费者功能或整个统一平台。
+
+## 版本一致性、权限与评测
+新任务在首次正式规划时固定 personal-skills 的完整 Git commit SHA，后续所有角色以其为唯一方法规范基线。现有 ReviewLoop/PR bot 的强制政策、状态及仓库安全规则不被旧方法快照覆盖；发生实质冲突需报告。Task Spec 必须分别记录是否允许修改、commit、push、创建 PR、merge 等操作，未获授权的不执行。设计审查可由用户明确知情豁免并授权继续，但不能跳过重大未决设计或强制关卡。请按 [固定评测案例](EVALS.md) 记录实际结果，不要把文字场景直接当作执行 PASS。
 
 ## 从 v11.5 迁移
 v11.5 依据：`Jiaze-Li/personal-skills` commit `18448e3a43502e25149271784551beae91d1630a`，路径 `engineering-task-spec/skill.md`。
