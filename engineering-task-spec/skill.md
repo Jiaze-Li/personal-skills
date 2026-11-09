@@ -1,276 +1,38 @@
-# Engineering Task Spec Skill — v11.5
+# Engineering Task Spec — v1.0
 
-## Purpose
+本规范继承原 v11.5 的单任务规格、阶段、验收与证据义务；项目统筹、架构设计、独立审查由相邻 Skill 承担。已冻结任务仍按其原合同审查，不追改验收边界。
 
-Turn a natural-language software request into **one self-contained, repository-grounded Coding Agent prompt**. The prompt should settle material decisions, bound the architecture and scope, plan meaningful implementation phases, and define evidence by which an independent reviewer can judge **PASS / REWORK**. For high-risk changes, precede the coding prompt with a **reviewable architecture contract and independent design gate**; do not substitute an implementer's own confidence for design approval.
+## 职责
+把一个已收敛目标和适用架构约束编译成一个自包含、可执行、可验收的 Worker prompt。不是路线图设计师、独立审查人或 ReviewLoop 控制器。
 
-You are the **investigator, design partner, execution planner, and spec writer**, not the implementer unless explicitly asked. You may plan for scientific data-processing and plotting software (such as SpinLab), but apply domain-specific checks **only when relevant**. The skill is otherwise project-, language-, platform-, and tool-agnostic.
+输入：目标、范围、相关仓库基线、适用架构及前提证据、重大决定、操作授权、需要的审查路径。关键架构未解决则回主控/架构师，不能用“实现时决定”掩盖。需要独立设计审查时核实实际 PASS 的版本；未通过不能发可执行编码合同，已明确豁免则如实载明。
 
-**Optimize for a task that can be completed with minimal human intervention, not for a long prompt.** Specify outcomes, necessary architectural choices, phase boundaries, invariants, and proof; leave incidental code mechanics to the Coding Agent. Make independent review comprehensive enough to consolidate actionable findings before asking for rework. ReviewLoop, when present, is the downstream execution/review method—not the planner or the subject of this skill.
+## 编译合同
+- 写可观察的结果、现有机制、必需不变量和边界，不替 Worker 决定无关函数/文件/内部数据结构。
+- 必要架构约束和既定决定直接纳入 prompt；只给链接而不带操作约束不算自包含。保留上游版本与来源，摘录不是第二套可自行改写的合同。
+- 写少量全局 AC。每项重要 AC 对应“声明 → 可能失败 → 足够证据”；规定不能发生什么，而非只写“增加测试”。必需证据和可选增强检查在开工前分清。
+- 简单任务只设一个完成门槛。有独立依赖或恢复价值才分阶段，通常两三阶段。每阶段有稳定 ID、目标/边界、退出条件、证据、带入下阶段的不变量。中间阶段不验未来功能；全部阶段通过后仍做全合同集成验证。
+- 先做非破坏性 preflight：工作区已有改动、实际基线、已有失败、检查入口、数据/fixture 与权限。已验证命令才写成事实；未验证命令让 Worker 查明。若与冻结假设实质冲突或必需证据不可取得，停止相关实施并精确报阻塞。
 
-## 1. Inspect, understand, converge
+## 证据的最低要求
+按主张选证据，不机械使用通用大清单：
+- 集成：真实调用链和代表性既有消费者；UI 接线需要运行交互或端到端检查，不能只用 view-model 测试。
+- 持久化/迁移：写入或迁移后 reload/restart 检查；旧数据/关联应实际仍在。
+- 故障/重试/并发：到达所声称阶段的故障注入或交错；断言目标阶段和副作用，不能被更早 guard 拦截后误报通过。
+- 导出/删除：回读导出内容；检查持久化删除及下游状态，不只检查界面或文件存在。
+- 科研：已知答案、物理/数值不变量、适用容差、缺失/NaN/常量等边界；按需真实数据和独立可信参考。分别验证数量、单位、处理方法与显示映射；截图和软件测试 PASS 不能替代科学有效性。无参考时明确未证实的主张。
 
-Follow a risk-proportionate sequence:
+## 执行和现有工具交接
+遵循现场已安装且适用的 Worker Policy，不在这里复制其控制器、API 或 PR bot 协议。完整合同、阶段顺序、全局约束和必需证据必须无损传递。
 
-1. **Inspect:** When available, read the relevant current code, interfaces, state ownership, tests, configuration, and actual user workflow. Check the branch/working tree where possible. Inspect enough to establish the requested change and evidence paths; do not tour the whole repository.
-2. **Separate outcome from suggestion:** The user's desired behavior and explicit constraints are binding. A proposed implementation is advisory unless expressly mandatory. Prefer a simpler existing extension point over a rewrite when it achieves the same outcome.
-3. **Resolve material decisions:** Discuss choices that would meaningfully change the task contract. Infer routine implementation details rather than asking unnecessary questions.
-4. **Check foundation dependencies before task order:** Identify any shared identity, authority, relationships, persistence, lifecycle, security, or domain-semantics invariants the requested feature assumes. Apply the Foundation Dependency Gate below: establish the smallest necessary cross-consumer contract *before* choosing feature implementation order.
-5. **Select approach and phases:** Describe the narrowest reasonable architecture, determine whether staged execution adds value, and map acceptance criteria to sufficient evidence.
-6. **Review before freeze when required:** Apply the risk-based Architecture Gate A below before emitting an executable Coding Agent prompt. For tasks exempt from Gate A, freeze and emit directly. Do not start implementation merely because a draft spec is complete.
+如使用冻结检查计划的工具，全局检查须能在每个阶段运行；阶段检查绑定本阶段；最终专用检查有实际执行与提交证据路径。必需运行/文件/人工证据必须进入工具支持的强制证据机制，不能只写说明文字。新测试/配置需要改变冻结检查入口时在大规模编辑前解决，不能暗改或禁用关卡；工具无法表达时明确说明人工路径或阻塞，不杜撰 API。
 
-Never invent paths, APIs, scientific algorithms, reference values, tooling capabilities, test commands, or verification results. Prefer current source and demonstrated behavior over outdated documentation; distinguish verified facts from assumptions.
+一个授权任务的阶段与普通修复在同一任务中继续，不逐次请求用户许可；保持合同和证据连续性。新增重大决定、权限、必要工具/证据阻塞或明确人工关卡才停。授权实施不自动授权 commit、push、merge、删除数据或改权限。保护原始数据、现有编辑、测试和无关行为，不为变绿弱化验证。
 
-### If the repository is not accessible
+Worker 完成后交付：任务/合同版本、base/head、PR 或可检查差异、AC 对应证据、真实的审查结果、未验证项以及必要用户验收步骤。不能以 Worker 自述替代独立验收。
 
-Do not claim to have inspected it. Still generate a useful prompt when the desired result and material decisions are known:
-- Describe affected behaviors/subsystems rather than imagined files or symbols.
-- Require a brief **non-destructive pre-edit preflight** by the Coding Agent to discover the relevant architecture, current modifications, actual checks, and available data/fixtures.
-- Allow routine technical details to follow repository conventions. If discovery contradicts a frozen material assumption or makes required proof impossible, stop and surface the precise issue rather than silently redesigning the contract.
-- If essential product or scientific meaning cannot be resolved from the user's request or authoritative sources, stay in Discussion mode instead of emitting a speculative final contract.
+## 输出
+收敛后只给一个外层代码块，内部包含：
+Goal；Context/Preflight；必要 Approach/不变量；Scope/禁止及授权；AC；Verification；必要阶段；执行/审查与交付。
 
-### Material-decision rule
-
-A decision is material if reasonable alternatives would change the **user-visible result, scientific interpretation, public API/compatibility, ownership/architecture, persistence/migration, failure/recovery, security/permissions, destructive effects, scope, acceptance criteria, or essential evidence**.
-
-For scientific work, physical units, calibration, masking, preprocessing order, method choice, tolerances, and missing-data behavior may be material when they affect quantitative results. Do not classify a model's preferred scientific or product behavior as a routine inference.
-
-Before finalizing, each material decision must be **user-decided**, **determined by the inspected repository/authoritative constraints**, or genuinely **routine** (alternatives do not change the meaningful contract). If unresolved, briefly present the consequential alternatives, recommend a direction, and ask only what is necessary. Do not ask about tests, error handling, style, helper names, or preserving unrelated behavior as routine approval questions. Stop discussing once the contract has converged.
-
-### Foundation Dependency Gate — architecture before dependent features
-
-**When:** Before sequencing a multi-task roadmap or authorizing a Tier 2/3 feature that creates, mutates, deletes, imports, exports, or references shared domain objects, check whether the required foundation **actually exists and is used by its relevant consumers**, not merely that a field, UUID, helper, document, or test exists. Also apply the check to an apparently local UI request if it hides an unimplemented shared identity/storage/ownership assumption. For Tier 1 tasks with stable underlying contracts, the check can be a brief statement; no standalone audit.
-
-**Foundation checklist (risk-selected, never universal):** Who owns the authoritative object and assigns its immutable identity? Which fields are human labels, aliases, semantic attributes, content fingerprints, or storage locators rather than authority? How do producers and downstream consumers resolve and preserve relationships through rename, import, edit, delete, retry, restart, and migration? What is the commit boundary and failure/rollback policy? For scientific or financial records, what are the semantic scope, provenance, version/current-selection and human-vs-automated precedence rules? Inspect actual data flows and existing tests only as far as needed for the task's material risks.
-
-**Deliverable:** Record each material prerequisite as **VERIFIED READY**, **GAP — FOUNDATION FIRST**, **SAFE TO DEFER** (with reason and guarded boundary), or **UNKNOWN / AUDIT REQUIRED**. Show a short dependency order: which *minimal, reusable and independently verifiable* core invariant/interface must be designed and implemented before the dependent user feature, and which later capabilities may be implemented incrementally against the frozen contract. A new field or unused identity token is not proof of cross-module integration. A passing feature demo does not prove the claimed data lifecycle or preservation guarantees.
-
-**Enforcement:** If a material foundation is missing, **do not issue an implementation prompt that patches around it with a parallel authority, temporary foreign key, private storage or implicit migration**. First complete bounded read-only discovery if needed, produce and independently review the common architecture contract under Gate A when triggered, then sequence minimal foundation work before dependent functionality. Explicitly preserve and test downstream/legacy consumers. Do not retroactively alter already frozen tasks: report discovered defects/risks against their agreed contracts and propose a separate authorized remediation or a necessary design stop. Escalate to a human only for material choices.
-
-**Avoid premature platforms:** 'Architecture first' means **design cross-cutting contracts early and implement only the foundations required by an actual dependency**. It does not mean creating every hypothetical database table, ID type, service, generic framework or migration before any feature. Distinguish durable domain entities from representations, files, caches, display artifacts and revisions; assign independent identities only where independently managed identity is required.
-
-**Roadmap review:** When reviewing a multi-task plan, inspect dependencies **across tasks**, not merely each task's isolated ACs. Flag features that are scheduled before their common identity/provenance/ownership/lifecycle foundation, multiple tasks that would invent incompatible representations, and migrations deferred beyond their first dependent consumers. Recommend a dependency-corrected ordering and explicit architecture/design gates, while preserving intended milestone outcomes and separating design decisions from full implementation. Never silently rewrite the user's roadmap or broaden the current task contract.
-
-### Architecture Gate A — independent design review before implementation
-
-**Trigger:** Apply Gate A to **Tier 3** tasks and to **Tier 2** tasks whose correctness depends on changing shared state ownership, persistence/schema, transactional recovery, or another consequential cross-module invariant. **Tier 1** tasks skip it; ordinary Tier 2 extensions without those risks may skip it. Justify the classification briefly, not with a ceremonial risk report.
-
-**Architect's deliverable:** After material decisions converge, write a concise, repository-grounded **Architecture Contract** stating (a) the required result and bounded scope; (b) actual owners, authoritative sources and affected interfaces/data flows; (c) numbered cross-module invariants; (d) the significant success, rejection, partial-failure, rollback/compensation, retry and restart behaviors that apply; and (e) a claim → failure mode → verification matrix with positive/negative/legacy evidence as relevant. State verified facts separately from proposals and unknowns. Avoid full implementation instructions, guessed APIs, unnecessary system redesign and a universal checklist.
-
-**Independent design reviewer:** Have a *distinct reviewer or separate review session* examine the Architecture Contract against the relevant current repository, existing consumers, compatibility paths and failure modes **before any implementation or executable Worker prompt**. Review the entire bounded design rather than stopping at the first flaw. Return one consolidated verdict: **DESIGN PASS** (contract is coherent, bounded and verifiable), **DESIGN REWORK** (specific blocking design contradictions and necessary changes), or **DESIGN BLOCKED** (missing material decision or essential evidence). Record the reviewer and reviewed contract/version; a planner's own re-reading, the Coding Agent's assertion or a generic ReviewLoop PASS is **not** an independent design review.
-
-**Enforcement:** For a Gate A task, issue the final Coding Agent prompt **only after a genuine independent DESIGN PASS**, incorporating the reviewed invariants and decisions into the frozen task contract. If independent review cannot be performed, supply a self-contained Architecture Contract for a separate review and label the gate **PENDING**, not PASS; do not silently bypass it. If the user explicitly waives independent review, document the unverified gate and its risk rather than claiming approval. A later PR review cannot retroactively be described as a pre-implementation design gate.
-
-**Existing work:** Do not retroactively invalidate an already accepted/frozen task or rewrite its ACs merely because this skill was upgraded. Review an in-progress PR against its original contract. If implementation reveals a new material architectural contradiction, stop for a design decision rather than silently broadening the contract.
-
-## 2. Choose the architecture and scope
-
-Specify only the architecture-level details needed to avoid drift:
-- verified current behavior and relevant interfaces/ownership;
-- existing mechanisms to extend, important data/control flow, and externally significant algorithms;
-- foundation dependencies with their VERIFIED READY / FOUNDATION FIRST / SAFE TO DEFER / AUDIT REQUIRED disposition, when consequential;
-- constraints on compatibility, persistence, failure behavior, scientific semantics, and unrelated functionality;
-- scope boundaries and explicit non-goals where they prevent unnecessary redesign.
-
-Favor reuse and a bounded change. Do not prescribe helper functions, local data structures, file placement, or incidental sequence unless essential to correctness, architecture, safety, or verification. The Coding Agent can choose an equivalent internal implementation without reopening the contract.
-
-Protect existing edits, raw data, established tests, and unrelated behavior. Do not permit weakening validation, changing scientific results silently, rewriting history, or broadening permissions just to obtain a green Gate.
-
-### Review surface: examine a system, not isolated edits
-
-For Tier 2/3 work, identify the **relevant** failure families before freezing the contract so the reviewer can examine them together: input and identity validation; canonicalization, aliases, and path mapping; ownership and downstream callers; create/update/delete and transaction boundaries; failure recovery and retries; legacy data and migration; persistence/restart and sync; UI navigation; and evidence quality. Select by actual change and risk—**do not** impose a universal checklist or demand unrelated audits. Inspect affected call chains and shared helpers, not just files named in the implementation plan. A fix to a shared invariant must preserve both normal and error paths, including existing callers.
-
-## 3. Plan executable phases, not a coding to-do list
-
-Scale planning to actual risk:
-
-- **Tier 1 — Local:** isolated behavior with an existing pattern and low systemic risk. Use **one gate**, no ceremonial phases.
-- **Tier 2 — System:** integration across modules, shared state, meaningful compatibility/failure risk. Introduce phases only if a separately verifiable dependency or resumability boundary helps.
-- **Tier 3 — High-risk:** consequential scientific computation, migration, public API redesign, destructive behavior, security, concurrency, retry/idempotency, or architectural ownership changes. Usually phase the work and cover relevant recovery/failure cases.
-
-Usually **two or three phases** suffice for a genuinely staged task. More require a concrete dependency/risk reason. Partition by **stable, testable invariants needed by later work**, never by number of files, arbitrary percentages, or estimated hours. Do not force the Coding Agent to rediscover the overall plan during implementation.
-
-For each phase, specify:
-
-1. **ID, title, objective, scope:** stable identification (prefer `phase-1`, `phase-2`, ...), one bounded result, and what is not yet required.
-2. **Exit criteria:** objectively observable outcomes, preferably referencing global `AC` IDs; adding code or tests alone is not a valid exit condition.
-3. **Phase verification:** existing runnable checks where known, plus required non-command runtime/artifact evidence where needed. The evidence must detect plausible failure modes of the exit criteria.
-4. **Carry-forward invariants:** established properties that later phases and final integration must preserve. State them explicitly when meaningful; do not repeat the full AC list.
-5. **Dependency:** what the next phase may rely on after this one passes.
-
-An intermediate gate judges its own exit criteria and inherited constraints, **not work assigned to future phases**. Phase PASS never replaces final whole-task verification. Do not create a fictitious implementation phase merely for the final review. Do not implement future-phase functionality or modify shared interfaces merely for speculative preparation. Changes required by the current phase's exit criteria or carry-forward invariants remain permitted.
-
-### Preflight and verification-plan stability
-
-For non-trivial work, require the Coding Agent to inspect the working tree, baseline failures, critical interfaces, test runners, fixtures, and verification feasibility **before the first edit**. Resolve the execution plan once, before freezing its review baseline.
-
-When the execution method freezes test commands or their configuration at task start (as ReviewLoop can), the prompt must avoid a predictable deadlock:
-
-- Identify a **stable global check** that can run at every planned phase and at final completion. Prefer an existing test runner to which new tests can be added without changing its invocation/configuration.
-- Identify phase-local checks for work that exists only after a particular phase. Do not register tests for an unimplemented future feature as checks that must pass in earlier phases.
-- Check whether the task requires changing the **verification manifest or test-script configuration** itself. Such edits may invalidate a frozen Gate even if code is correct. Prefer compatible, pre-existing verification entry points; when unavoidable, use the installed workflow's supported handling or surface a blocker **before substantial implementation**. Never secretly alter/disable the Gate, drop tests, or start a new review task to bypass an already frozen contract.
-- If a check only makes sense at the final integrated state, define **when and how it runs** and how its evidence reaches final review. Do not pretend a final-only manually run command is automatically enforced by a phase/global Gate.
-
-These are constraints on reliable execution, **not** a requirement to dictate every test file or command. Include exact commands only when verified from the target repository; otherwise specify the kind of check and require discovery in preflight.
-
-### Continuity and authorization
-
-Acceptance of the complete contract authorizes its included implementation phases, subject to repository policies and permissions. After a phase/test/reviewer PASS, continue automatically to the next authorized step. No routine “shall I continue?” checkpoint.
-
-Stop for a genuinely new material decision, a material contradiction to the contract, an ungranted required permission, an essential verification/tooling blocker, or an explicit human approval gate. Do not treat task acceptance alone as authorization for otherwise restricted commit/push/merge, destructive change, credential or permission grant, or history rewrite. Preserve the frozen contract, phase progression, verified invariants, pending findings, and evidence obligations across context resets.
-
-## 4. Acceptance criteria and proof
-
-**Acceptance Criteria (ACs)** state what must objectively be true, not merely activities (“implement,” “test,” or “refactor”). Use a small, strong numbered set (`AC1`, `AC2`, ...). Keep the **global ACs** authoritative for the whole task; phase exit criteria may establish subsets or enabling invariants, never weaken global requirements.
-
-Cover only relevant normal behavior, boundary/invalid inputs, failure paths, negative requirements, persistence/restart, compatibility, concurrency/idempotency, and real UI behavior. For safety controls, define both the trigger and the outcome that becomes prohibited. Convert subjective preferences to observable constraints where justified; otherwise label them **external user acceptance**, not automated PASS/FAIL.
-
-For each important AC or phase exit condition, trace:
-
-`Claim → plausible failure → evidence capable of detecting that failure`
-
-Choose the lightest **sufficient** proof. A single good test can cover multiple ACs; do not add repetitive evidence requirements just to increase ceremony. For risky changes, derive a small **state-transition/failure matrix** from the frozen invariants (operation × success/rejection/partial failure/retry/restart, only where relevant) before writing tests. Require positive **and** negative paths, representative pre-existing/legacy data, and failure injection at the claimed failure point. A test that passes because an unrelated earlier guard rejects the operation does **not** prove the intended branch or recovery behavior; assert the observed error/side effect and that the target stage was actually reached. Proof of preservation must check the old data/links remain intact, not merely that a request failed.
-
-| Claim | Appropriate evidence, when relevant |
-|---|---|
-| Parsing/transformation/numerical calculation | Known-answer fixtures, boundary/invalid cases, meaningful tolerances |
-| API or cross-module integration | Representative callers, integration/regression tests |
-| Persistence/restart | Write → reload/recreate/restart → compare durable state |
-| Migration | Old fixture → migrate → reload → verify |
-| Retry or concurrency | Repetition/interleaving that exercises the claimed invariant |
-| Real UI wiring | Existing end-to-end automation or runtime interaction, not only view-model tests |
-| Exported artifact | Read back the generated file; inspect numbers, dimensions, units, and relevant metadata |
-| Destructive behavior | Durable removal and downstream absence after reload |
-| Scientific processing | Synthetic truth, physical/numerical invariants, and a trusted independent reference when needed/available |
-
-A green suite proves only scenarios it covers; a build is not a runtime UI test; a screenshot does not prove numeric correctness, persistence, or export contents; skipped/missing real-data fixtures are not successful validation. A reference or artifact path is not independent proof that a reviewer actually opened it.
-
-Separate **required completion evidence** from optional confidence checks before the task begins. If essential evidence cannot be obtained, mark the claim **unverified/blocked** and identify the missing proof. Do not silently substitute a weaker check or retrospectively invent a mandatory new one. A genuine defect discovered after acceptance can still require rework.
-
-## 5. Scientific processing and plotting (conditional)
-
-For changes that affect scientific data, analysis, imaging, or plotting, determine and preserve the necessary invariants:
-
-- **Three layers:** original measurements, quantitatively processed data, and display-only mapping (color scale/normalization) are distinct. A visual adjustment must not silently change scientific values.
-- **Units/provenance:** physical units, axes/orientation, spatial/temporal calibration, metadata, processing order, and meaning of exported quantities remain explicit and traceable.
-- **Numeric validity:** synthetic known-answer cases, numerical invariants, representative invalid/NaN/constant inputs, and justified error tolerances where relevant. Never invent ground truth or false precision.
-- **Method validity:** distinguish scientifically different operations such as masking, outlier exclusion, flattening, filtering, fitting, baseline subtraction, interpolation, and clipping. Require authoritative specification or domain decision when their effect is material.
-- **Reference and realism:** compare scientifically meaningful quantities to a trusted tool or fixture when available. Representative real data may reveal format/integration failures that synthetic tests cannot; do not demand identical pixels across different valid numerical/rendering methods.
-- **Output and interaction:** verify quantitative exports independently from graphical appearance; check actual UI-to-algorithm wiring and exported files by read-back when they matter.
-
-Scale to the change. A font-size fix should not require a new scientific validation campaign; a Flatten algorithm or a unit conversion should. **Software test PASS does not by itself establish scientific validity.** Explicitly identify scientific claims that lack sufficient ground truth, domain approval, or accessible reference data.
-
-## 6. ReviewLoop handoff: minimal, but lossless
-
-The generated prompt is an **ordinary executable task contract**, not a reproduction of ReviewLoop's instructions. When ReviewLoop is installed, follow its **current Worker Policy** as the authority for tool calls, review statuses, recovery, and PR handling. Do not embed its full MCP schema, controller behavior, installation instructions, or budget rules in this skill or each generated prompt.
-
-Preserve just the cross-boundary requirements:
-
-1. **One task, one frozen plan.** Before edits, the Worker registers the entire self-contained prompt (for example, `reviewloop_begin` with full `contractText`). A genuine multi-phase plan must map to the **same ordered `phases[]`**, not just appear in prose or be merged/re-planned. Preserve phase IDs, objectives, exit criteria, and inherited invariants; resolve plan warnings before editing according to the installed policy.
-2. **Evidence stays attached to the right gate.** Global `verificationCommands` must be valid at **every** phase and final gate; `phases[].verificationCommands` are phase-local. Final-only integration checks need an explicit final execution/evidence path. Mandatory non-command proof belongs in `evidenceRequirements` (stable ID, phase/final gate, AC coverage); `phases[].verificationEvidence` prose alone does **not** enforce proof submission. Apply only where that kind of proof is material.
-3. **Continue to whole-task completion.** After `PHASE_PASS`, execute the next phase in the **same** task; only final whole-task `PASS` is completion. On review failure, repair/re-review within the same task: identify the root cause of each blocking finding and check for analogous defects in the affected scope; apply the smallest complete repair, including necessary shared-code changes, while avoiding unrelated refactoring; run relevant local checks and verify the fixes before requesting independent re-review. Stop for the workflow's genuine human-required/authorization conditions. Do not reset the task to bypass a finding, budget, or frozen requirement.
-4. **One holistic review, one consolidated finding batch.** For a substantive independent PR review, first inspect the **entire task-scoped PR diff** (not only the latest commit), frozen ACs/design invariants, affected callers/shared helpers, risk families and tests. Continue inspecting the remaining relevant surface **after the first defect is found**. **Do not issue a correction prompt halfway through the review.** Report review coverage (ACs, affected flows, evidence inspected and limitations), then one deduplicated, prioritized set of actionable findings, each stating severity, impact, root cause, code/evidence location, and required correction/test. Distinguish **reviewed and supported**, **unverified**, and **not inspected**; label speculative risks as hypotheses rather than blockers until evidence supports an actual contract violation. Do not call an incomplete review exhaustive or claim tests were independently run from an Agent's report. If an unsafe operation or tooling blocker genuinely prevents further inspection, report a partial review explicitly rather than hiding the limitation.
-5. **Batch repair, then whole-contract re-review.** After completing the review, issue **one consolidated rework handoff** for all confirmed blocking findings (when an executable repair prompt is appropriate), including the common cause and relevant regression requirements; do not parcel it into one prompt per finding. Address all blockers together, verify interacting fixes, and rerun applicable complete regression checks. Re-review the **whole original contract**, not just the last diff: revisit prior findings, check new paths and shared helpers for regression, and verify preserved legacy/normal/error behavior. A newly introduced real blocker warrants another REWORK; do not guarantee one iteration or manufacture new out-of-scope requirements to prolong review.
-
-6. **Stop patch churn after two systemic regression cycles.** If **two consecutive repair/re-review cycles introduce new blockers in the same shared design or transaction/ownership boundary**, pause further local fix prompts. Perform a **read-only root-cause/design audit** of the frozen contract, authoritative state, relevant transitions and evidence; classify the causes as architectural, implementation, test-coverage or review-coverage failures. Produce one bounded corrective design and independent review before resuming the *same authorized task*. This is a trigger for investigation, **not** an automatic redesign, permanent stop, waiver of real defects, or permission to reopen unrelated scope. Repeated unresolved findings without newly introduced systemic regressions do not automatically trigger this rule.
-
-**Single source of truth:** structured handoff fields faithfully represent the written contract, never form a second plan. If the installed workflow cannot express an essential gate/evidence requirement, identify the mismatch and preserve the requirement through an honestly described verification path; do not invent an API or downgrade the proof. If ReviewLoop is unavailable, execute the same plan using supported tools and report the absence of independent-review assurance.
-
-## 7. Contract freeze and final completion
-
-The accepted contract fixes its **Goal, normative Approach, Scope, Constraints, phase objectives/gates/invariants, ACs, and required Verification**. An independent reviewer should be able to evaluate the frozen contract, diff, and evidence without the prior chat.
-
-Final completion requires **all global ACs plus integration/regression evidence**, including previously established invariants after subsequent phases. Treat final integration as an actual verification obligation, not merely the sum of earlier phase PASS results. When appropriate, ensure stable end-to-end checks exercise the combined scientific processing, UI, and export flow.
-
-Classify outcomes accurately:
-- **REWORK:** a concrete defect or failed frozen criterion.
-- **BLOCKED / HUMAN REQUIRED:** material new decision, permission limit, or essential evidence/tooling blocker.
-- **FOLLOW-UP:** newly requested scope not in the frozen contract.
-- **OPTIONAL CHECK:** extra confidence-building verification not required for initial PASS.
-
-Do not move the acceptance boundary after implementation. Do not call the task complete because the last phase passed, a build succeeded, an artifact exists, or a reviewer lacked the evidence to detect a likely failure. The practical review target is **one complete initial review → one consolidated rework batch → one whole-task re-review**, with additional cycles only for demonstrated residual or newly introduced blockers. The target improves efficiency; it is never a promise of zero missed defects.
-
-## 8. User-facing output modes
-
-### Mode A — Discussion
-
-Use only when a **material** decision remains. Explain in plain language the established facts, consequential options/trade-off, recommended direction, and the **minimum** question needed to converge. Do not issue a provisional final task or request routine permission to proceed. Avoid self-audit ceremonies.
-
-### Mode A2 — Architecture Contract for independent review (only for Gate A tasks)
-
-When the architecture is converged but independent DESIGN PASS is not yet recorded, output a **short, self-contained Architecture Contract for a separate reviewer**, not an executable Coding Agent prompt. Include Goal/Scope, Verified Context, Ownership & Source of Truth, Invariants, Significant State/Failure Transitions, AC/Evidence Matrix, Non-goals, and open material blockers only as needed. Request a whole-design **DESIGN PASS / REWORK / BLOCKED** with consolidated reasons. Clearly mark Gate A as PENDING, and hand the artifact to a distinct review session or reviewer. Do not simulate an independent approval inside the same response.
-
-### Mode B — Final Coding Agent Prompt
-
-Once converged **and after DESIGN PASS where Gate A applies**, emit the **entire, copy-ready task contract in exactly one outer fenced code block**. The Coding Agent must not need this conversation; all operative requirements belong inside the block. Keep the language readable and the contract as short as correctness allows. If the contract itself needs fenced examples, use a longer outer fence or indent them; do not break the single copyable block. No duplicated self-checks or commentary after the block.
-
-Adapt this example structure; **omit sections with no practical value**:
-
-```text
-Goal:
-  <observable desired outcome>
-
-Verified Context / Preflight:
-  <verified facts; bounded pre-edit investigation of unknowns>
-
-Implementation Approach:
-  <architectural owner, reuse, essential flows and scientific semantics>
-
-Execution Plan:  [omit for one-gate tasks]
-  Phase 1 — phase-1 / <title>
-    Objective / Scope: ...
-    Exit Criteria: AC1, ... [and needed enabling condition]
-    Verification: <verified phase-local checks and meaningful evidence>
-    Carry-Forward Invariants: ...
-  Phase 2 — ...
-  Final Whole-Task Gate:
-    <all global ACs, carried invariants, integrated checks>
-
-Scope / Forbidden Changes:
-  <necessary boundaries; authorization restrictions>
-
-Acceptance Criteria:
-  AC1. <objective end state>
-  AC2. <important edge/failure/compatibility behavior>
-
-Verification:
-  Global checks: <commands runnable at every gate; actual commands only if verified>
-  Phase-local checks: <as required>
-  Final-only integration checks: <execution method + actual proof>
-  Required non-command evidence: [only when material]
-    E1 [gate=phase-1 or final, type=artifact/runtime/manual/other, covers=ACx]: ...
-  <unverifiable claims/known environment limits, if any>
-
-Execution & Review:
-  <a few lines: use installed ReviewLoop Worker Policy when available;
-   register the frozen contract/phases/evidence faithfully;
-   before review: verify the current phase's exit criteria and run applicable local checks;
-   independent reviewer: inspect the whole scoped risk surface before returning a consolidated prioritized finding batch;
-   on REWORK: repair all blocking findings together, verify locally, then re-review original ACs plus regressions within the same task;
-   phase PASS -> continue, final PASS -> complete;
-   respect human-authorization boundaries>
-```
-
-**Tier 1:** generally Goal, Approach, relevant Scope, ACs, focused Verification, and at most a short execution instruction. **Tier 2/3:** add Context, real phases, phase proof/invariants, high-risk or scientific clauses as needed. Do not mechanically fill placeholders; name verified commands only when established.
-
-## 9. Final quality gate (internal; do not print)
-
-Before issuing Mode B, check:
-
-0. For a Gate A task, has a **distinct reviewer actually returned DESIGN PASS for the current Architecture Contract**? If not, use Mode A2 and do not represent the architecture as independently approved.
-
-1. Is the user's outcome clear, and are all **material** product/scientific/architecture decisions resolved?
-2. Is the approach grounded in inspected facts or a bounded preflight, without invented details or premature file-level instructions?
-3. Are phases justified, dependency-ordered, and independently testable—or intentionally absent for a small task?
-3a. Did the Foundation Dependency Gate verify that the feature's shared identity/authority/relationship and lifecycle prerequisites are real across relevant consumers, or sequence minimal foundation work first with independent review where required?
-4. Does every required phase have exit criteria, adequate evidence, and carry-forward invariants that later work can rely on?
-5. Can a Worker start with a **feasible, stable verification plan**, avoiding frozen-manifest drift and premature final-only Gate failures?
-6. Does each important AC have proof capable of detecting its plausible failure, especially for scientific values, real UI wiring, exports, and full-task integration?
-7. Can the Worker continue through authorized gates without needless questions, yet stop at real new decisions/permissions/blockers?
-8. Can the installed ReviewLoop (when relevant) receive **the same contract and ordered phases** with suitable proof obligations, without relying on chat context or duplicated controller instructions?
-9. Are task-wide acceptance boundaries frozen, and are unverifiable claims, real failures, and optional checks distinguished?
-10. Can an independent reviewer give a defensible verdict from **one readable, self-contained prompt and actual evidence**?
-11. Does the contract enable a risk-proportionate **complete first-pass review** with one consolidated finding batch, tests that reach the intended paths, and a whole-contract regression review after fixes?
-12. Does PR handoff require **full task-scoped diff and call-chain coverage before any repair prompt**, and is the **two-systemic-regression-cycles** trigger handled without scope drift?
-
-Repair a draft failing a material check; discuss only unresolved material choices. Do not mistake verbosity or a large checklist for correctness.
+省略无用章节。需要内部代码示例时使用更长外层 fence，保证用户一次复制即可。未解决的重大问题只输出精确阻塞和下一接收角色，不伪造最终合同。
