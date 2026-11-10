@@ -1,4 +1,4 @@
-# Engineering Workflow — 动态评测 v1.0.3
+# Engineering Workflow — 动态评测 v1.0.4
 
 目标：验证四角色系统**正确放行且正确停止**。测试是可重放的模拟，不改真实仓库；只有附实际输出/证据的运行才可记 PASS。每次更新 Skill 后用固定 `policy_sha` 运行全部用例。实际工程闭环另记，不把模拟当真实 ReviewLoop 或 PR 结果。
 
@@ -57,11 +57,19 @@
 
 **E04-N 反向输入：** 同一接口任务改为“更改 Sample 的唯一权威、迁移旧关联、同步影响 Measurement”，预期 Gate=REQUIRED、先进行独立设计审查或有效明确豁免，不能直接生成可执行实施任务。
 
+## E05 — Actionable Handoff（用户操作说明）
+
+**E05-P 正向模拟：** 向 A 说明“已生成并确认存在一个名为 `review-pack.zip` 的审查包（仅为模拟输入，不提供真实文件 URL），需要独立 Reviewer B”。预期 A 明确告诉用户新建哪个对话、上传哪一包、粘贴哪一段**完整** Prompt、B 的结果交回哪里；模拟无可验证下载地址时不得伪造链接。只记模拟行为 PASS，不视为真实文件交付。
+
+**E05-N 反向模拟：** A 尚未生成文件，但声称“审查包已经准备好”；预期不虚构下载地址、不要求用户寻找不存在的附件，而是给可复制的自包含交接文本，或明确需要先生成的材料。任务若仍处于 DESIGN REWORK 不得误称“现在可开发”。
+
+**效率记录：** 人工转交次数（目标 1，通常不超过 2）；是否给出明确下一步、准确附件/引用、完整 Prompt、文末必要决策。没有原始对话输出则为 NOT RUN。
+
 ## 最小证据记录（每个用例独立一份）
 ```text
 Date:
 Policy SHA (full):
-Case: E01-P/N, E02-P/N, E03-P/N, E04-P/N
+Case: E01-P/N, E02-P/N, E03-P/N, E04-P/N, E05-P/N
 Model + review context:
 Exact input and actual raw output/link:
 Evidence read / simulated assumptions:

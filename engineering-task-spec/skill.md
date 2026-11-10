@@ -1,4 +1,4 @@
-# Engineering Task Spec — v1.0.3
+# Engineering Task Spec — v1.0.4
 
 本规范继承原 v11.5 的单任务规格、阶段、验收与证据义务；项目统筹、架构设计、独立审查由相邻 Skill 承担。已冻结任务仍按其原合同审查，不追改验收边界。
 
@@ -32,7 +32,7 @@
 Worker 完成后交付：任务/合同版本、base/head、PR 或可检查差异、AC 对应证据、真实的审查结果、未验证项以及必要用户验收步骤。不能以 Worker 自述替代独立验收。
 
 ## 输出
-收敛后只给一个外层代码块，内部包含：
+按 `../engineering-workflow/README.md` 的 **Actionable Handoff**，在代码块前仅用一句说明下一步如何交给 Worker（区分已授权执行与仅供审阅）；其后只给一个可一次复制的完整外层代码块，内部包含：
 Goal；Task/Contract ID 与 Policy SHA；Context/Preflight；必要 Approach/不变量；Lead 的 Gate 状态及 Design Ref（适用时）；Scope/禁止及逐项授权；AC；Verification；必要阶段；执行/审查与交付。
 
-省略无用章节。需要内部代码示例时使用更长外层 fence，保证用户一次复制即可。未解决的重大问题只输出精确阻塞和下一接收角色，不伪造最终合同。
+省略无用章节；内部示例用更长外层 fence，保持一次复制。代码块后不追加讲解。未解决重大问题时，不输出可执行合同；明确阻塞、下一步具体操作与文末需要用户决定的取舍。
