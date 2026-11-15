@@ -10,12 +10,12 @@
 
 | Skill | 职责 | 何时使用 | 入口 |
 | --- | --- | --- | --- |
-| **Engineering Lead** | 需求收敛、路线与依赖管理、任务交接；工程主控默认入口 | 开始或继续工程项目、确定下一任务与所需角色时 | [`engineering-lead/skill.md`](engineering-lead/skill.md) |
-| **Engineering Architect** | 共享身份、数据权威、接口、迁移及高风险不变量的架构合同 | 任务涉及跨模块关键设计或重要科研语义时，按需加载 | [`engineering-architect/skill.md`](engineering-architect/skill.md) |
-| **Engineering Task Spec** | 将已确认目标及架构约束编译为自包含 Worker Prompt、AC 与验证要求 | 设计前提已明确，需要交给 Coding Agent 实施时 | [`engineering-task-spec/skill.md`](engineering-task-spec/skill.md) |
-| **Engineering Reviewer** | 独立设计/实施审查、返工判定与完整复审 | 需要独立 Design Gate 或实现审查时，在独立审查上下文加载 | [`engineering-reviewer/skill.md`](engineering-reviewer/skill.md) |
+| **Engineering Lead** | Plan（完整需求）、路线与依赖管理、阶段停止点、授权与任务交接；工程主控默认入口 | 开始或继续工程项目、确定下一任务与所需角色时 | [`engineering-lead/skill.md`](engineering-lead/skill.md) |
+| **Engineering Architect** | Design：含 Options、Assumptions 和 Work Contract 的完整设计文件 | Design 阶段（所有任务），按需加载 | [`engineering-architect/skill.md`](engineering-architect/skill.md) |
+| **Engineering Task Spec** | Code：启动已通过审查的设计、AC 与证据要求、分项授权；Work Contract 的写法 | 设计已 PASS 且用户说“Code”，需要交给 Coding Agent 实施时 | [`engineering-task-spec/skill.md`](engineering-task-spec/skill.md) |
+| **Engineering Reviewer** | 独立设计/实施审查、返工判定与完整复审 | 需要人工独立审查，或作为 ReviewLoop 审查标准的依据时，在独立审查上下文加载 | [`engineering-reviewer/skill.md`](engineering-reviewer/skill.md) |
 
-**工程协作方式（v1.0.4）：** 一个主控 GPT 对话 → 一个 Coding Agent Worker → 按风险调用独立 Reviewer。四个角色按需加载，并非四个常驻对话；现有 ReviewLoop / PR bot 仍负责开发执行流程，不另设控制器。
+**工程协作方式（v1.1.0）：** 所有新工程任务走 Plan → Design → Code，每个阶段结束都停下等用户明确指令；设计与代码都由本地 Agent 通过 ReviewLoop 独立审查，不按风险等级跳过。四个角色按需加载，并非四个常驻对话；现有 ReviewLoop / PR bot 仍负责开发执行流程，不另设控制器。
 
 - [AI Engineering Workflow 使用说明](engineering-workflow/README.md)：完整流程与可复制的 ChatGPT Project Settings。
 - [Engineering Workflow EVALS](engineering-workflow/EVALS.md)：固定评测案例与记录模板。
