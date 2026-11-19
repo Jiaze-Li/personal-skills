@@ -123,7 +123,7 @@ A 按阶段读取对应规范，不要求所有规范一直塞进一个系统提
 
 **唯一详细规范；Lead 与 Architect 只引用本节。** 目的：任务级 Plan/Design 全文只存在于该任务的 PR，main 只收正式项目资产。
 
-**适用与默认：** 只有 Plan 里明确写 `contract_storage: pr-comment` 的任务才用本模式；**其余任务仍是旧模式**（完整 Plan 存为任务分支里的 `Plan.md`），旧任务、旧 `policy_sha`、旧文件路径照旧可恢复，不被本节重判。
+**适用与默认：** 只有 Plan 里明确写 `contract_storage: pr-comment` 的任务才用本模式，且该行只能在用户于该任务中明确要求时写入，Agent 不得自行选用（成为默认是另一次协议修改）；**其余任务仍是旧模式**（完整 Plan 存为任务分支里的 `Plan.md`），旧任务、旧 `policy_sha`、旧文件路径照旧可恢复，不被本节重判。
 **切换点：** 待 ReviewLoop 侧恢复校验、最终差异守卫与跨仓库联调（真实走完 Plan → Draft PR → Design PASS → Code → 最终 PR）通过后，由用户决定改为默认，并在此记录日期与 reviewloop SHA。目前：未切换。
 **强制状态：** 下面的恢复校验和最终差异检查目前只是**人工/Agent 须遵守的程序**，ReviewLoop 与 CI 尚未机器强制，不得说成已生效。
 
