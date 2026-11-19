@@ -216,15 +216,15 @@ A 按阶段读取对应规范，不要求所有规范一直塞进一个系统提
 ### 本地 Agent：Design 阶段（我说“Design”之后使用）
 ```text
 任务 <ID>，policy_sha=<完整 SHA>。按该 SHA 读取 Jiaze-Li/personal-skills 的 engineering-architect/skill.md 和 engineering-workflow/README.md。
-先用 reviewloop_begin（taskType=design）：完整 Plan 作为合同，设计文件使用一个尚不存在的路径；然后再创建设计文件。
-设计文件含 Options、Assumptions、已核实事实（带出处的摘录）和末尾的 Work Contract。按 ReviewLoop 返回的状态在同一 loop 修改并复审。
-PASS 后（在有 PR 评论授权时）发不超过五句的说明和 designSha256，然后停止，等我说“Code”。不得 commit 设计文件，除非我已授权。
+先按“任务合同归档与恢复”从 PR 评论恢复并核对完整 Plan（旧文件模式按原路径读取）；再用 reviewloop_begin（taskType=design）：完整 Plan 作为合同，设计文件使用一个尚不存在的未跟踪路径；然后再创建设计文件。
+设计文件含 Options、Assumptions、已核实事实（带出处的摘录）和末尾的 Work Contract。按 ReviewLoop 返回的状态在同一 loop 修改并复审；不得 commit 设计文件。
+PASS 后（在有 PR 评论授权时）先把设计全文归档到 PR 评论、更新索引并回取校验哈希 = designSha256，校验成功后才删除未跟踪的设计工作文件（失败则保留并停下），并发不超过五句的说明和 designSha256，然后停止，等我说“Code”。
 ```
 
 ### 本地 Agent：Code 阶段（我说“Code”之后使用）
 ```text
 任务 <ID>，policy_sha=<完整 SHA>，designSha256=<值>。按该 SHA 读取 engineering-task-spec/skill.md。
-把通过审查的设计文件原文逐字交给 reviewloop_begin（taskType=code）并带上 designSha256；对不上就停下告诉我。
+从 PR 评论恢复并核对通过审查的设计原文（旧文件模式按原路径读取），逐字交给 reviewloop_begin（taskType=code）并带上 designSha256；对不上就停下告诉我。
 授权：<修改/commit/push/PR/merge/部署/破坏性/权限 各自写明，未写视为未授权>。本地 PASS 后停止。
 ```
 
