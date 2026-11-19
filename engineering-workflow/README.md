@@ -124,7 +124,7 @@ A 按阶段读取对应规范，不要求所有规范一直塞进一个系统提
 **唯一详细规范；Lead 与 Architect 只引用本节。** 目的：任务级 Plan/Design 全文只存在于该任务的 PR，main 只收正式项目资产。
 
 **适用与默认：** 所有新任务默认且只允许使用本节的 PR 评论模式（无需用户再单独指定 `contract_storage: pr-comment`）。**旧任务（已有旧 `policy_sha`、已冻结合同或现存 `Plan.md`/`Design.md`）**照旧按原合同与原文件路径恢复，不被本节重判或清理。
-**切换点：** 2026-11-19 起通过 `RL-CONTRACT-PR-COMMENT-20261119`（`Jiaze-Li/reviewloop#56` @ `efde0b6` 与本仓库对应 PR）统一切换为新任务唯一默认；端到端默认生效以双仓库 PR 均合入且完成真实 GitHub 联调为准。
+**切换点：** 2026-11-19 起通过 `RL-CONTRACT-PR-COMMENT-20261119` 统一切换为新任务唯一默认：`Jiaze-Li/reviewloop#56` 已合入 `main`（`721ff87`）并完成 PR 评论恢复、Design 归档清理与差异守卫的真实 GitHub 验证；本仓库合入后，新任务按该 `policy_sha` 直接启用本默认模式。
 **强制状态：** ReviewLoop 本地 CLI 与 `check-pr-handoff.js --check-diff` 提供本地恢复校验与最终差异检查；远端分支保护 / 目标仓库 CI 若未配置仍为 `NOT_ENFORCED`，不得标成已强制。
 
 **1. 权威与格式**
