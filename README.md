@@ -1,28 +1,10 @@
 # personal-skills
 
-个人 AI Skills 仓库。**一个 Skill 对应一个稳定目录和一个当前有效入口**（`skill.md` 或 `SKILL.md`）；历史版本通过 Git 恢复。
+个人非工程领域 AI Skills 仓库。**一个 Skill 对应一个稳定目录和一个当前有效入口**（`SKILL.md`）；历史版本通过 Git 恢复。
 
-下面按**用途**分类，便于选择和扩展。分类是 README 导航，不是实际目录层级；当前所有 Skill 目录仍位于仓库根目录，避免破坏现有相对链接、固定 Git 引用与外部加载路径。
+> **说明：** Engineering Workflow 已迁移至 [`Jiaze-Li/reviewloop/engineering/`](https://github.com/Jiaze-Li/reviewloop/tree/main/engineering)。历史旧任务的工程规范与合同按其各自记录的完整 commit SHA 从 Git 历史恢复。
 
 ## Skill 索引
-
-### Engineering — AI 工程协作
-
-| Skill | 职责 | 何时使用 | 入口 |
-| --- | --- | --- | --- |
-| **Engineering Lead** | Plan（完整需求）、路线与依赖管理、阶段停止点、授权与任务交接；工程主控默认入口 | 开始或继续工程项目、确定下一任务与所需角色时 | [`engineering-lead/skill.md`](engineering-lead/skill.md) |
-| **Engineering Architect** | Design：含 Options、Assumptions 和 Work Contract 的完整设计文件 | Design 阶段（所有任务），按需加载 | [`engineering-architect/skill.md`](engineering-architect/skill.md) |
-| **Engineering Task Spec** | Code：启动已通过审查的设计、AC 与证据要求、分项授权；Work Contract 的写法 | 设计已 PASS 且用户说“Code”，需要交给 Coding Agent 实施时 | [`engineering-task-spec/skill.md`](engineering-task-spec/skill.md) |
-| **Engineering Reviewer** | 独立设计/实施审查、返工判定与完整复审 | 需要人工独立审查，或作为 ReviewLoop 审查标准的依据时，在独立审查上下文加载 | [`engineering-reviewer/skill.md`](engineering-reviewer/skill.md) |
-
-**工程协作方式（v1.1.0）：** 所有新工程任务走 Plan → Design → Code，每个阶段结束都停下等用户明确指令；设计与代码都由本地 Agent 通过 ReviewLoop 独立审查，不按风险等级跳过。四个角色按需加载，并非四个常驻对话；现有 ReviewLoop / PR bot 仍负责开发执行流程，不另设控制器。
-
-- [AI Engineering Workflow 使用说明](engineering-workflow/README.md)：完整流程与可复制的 ChatGPT Project Settings。
-- [Engineering Workflow EVALS](engineering-workflow/EVALS.md)：固定评测案例与记录模板。
-
-`engineering-workflow/` 是**配套文档目录**，不是第七个 Skill。
-
-**版本边界：** 新工程任务按 Engineering Lead 规范记录 `policy_sha`；进行中任务按其固定 SHA 加载相关 Skill，不因为 `main` 后续更新而自动切换。原 Engineering Task Spec v11.5 保留于 Git 历史（commit `18448e3`），已冻结任务沿用原合同；新规范不追溯修改旧任务验收要求。
 
 ### Scientific Computing — 科研数据处理
 
@@ -40,8 +22,7 @@
 
 ## 新增与维护约定
 
-1. **先判断是否真需要新 Skill。** 可重复调用、职责清晰、具有稳定输入/输出或操作约束的能力适合独立成 Skill；一般说明书、工作流资料、脚本资产应留在所属 Skill 或文档目录。
+1. **先判断是否真需要新 Skill。** 可重复调用、职责清晰、具有稳定输入/输出或操作约束的能力适合独立成 Skill；一般说明书、脚本资产应留在所属 Skill 目录。
 2. **先登记到本 README。** 新增 Skill 时填上领域、职责、触发条件和实际入口路径；本表作为唯一总索引，避免维护多份彼此冲突的分类清单。
-3. **稳定路径优先。** 现有 `skill.md` / `SKILL.md` 大小写及内部相对路径先保持原样。若将来统一为特定 Agent Skills 加载格式，应单独评估兼容性并更新所有引用，不把文件改名当作纯排版。
-4. **不把导航调整当作规则更新。** 更改 Skill 本文、权限、验收标准、版本或目录位置，应在独立的变更中说明影响；已冻结工程任务仍遵守自身的 `policy_sha` 与合同。
-5. **保持轻量。** 目前只有六个 Skill，采用根目录平铺 + README 逻辑分类；只有当导航确实难以维护时，才另行设计实体分类目录和迁移计划。
+3. **稳定路径优先。** 现有目录名、`SKILL.md` 大小写及内部相对路径保持稳定，避免破坏现有外部引用与本地加载路径。
+4. **保持轻量。** 当前仅维护非工程领域 Skills，采用根目录平铺 + README 逻辑分类。
