@@ -1,4 +1,4 @@
-# skill
+# skills
 
 个人非工程领域 AI Skills 仓库。**一个 Skill 对应一个稳定目录和一个当前有效入口**（`SKILL.md`）；历史版本通过 Git 恢复。
 
